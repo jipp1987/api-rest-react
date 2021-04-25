@@ -1,0 +1,23 @@
+.btn-container {
+    display: flex;
+    cursor: pointer;
+}
+
+.btn-container:hover {
+    opacity: 0.5;
+}
+
+.image-button {
+    background-size: cover !important;
+    display: block;
+    width: 20px;
+    height: 20px;
+}
+
+.btn-text {
+    margin-left: 5px;
+}
+
+.restart-button {
+    background: url("../../resources/restart.png") no-repeat;
+}
