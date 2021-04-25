@@ -13,7 +13,6 @@ const VIEW_MAP = {
     'ClienteView': ClienteView
 }
 
-
 /**
  * Clase menú.
  */
