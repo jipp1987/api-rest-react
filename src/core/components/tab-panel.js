@@ -1,5 +1,6 @@
 import React, { Component, Suspense } from 'react';
 import Tab from './tab';
+import { v4 as uuidv4 } from 'uuid';
 
 import './styles/tabs.css';
 
@@ -10,33 +11,11 @@ export default class TabPanel extends Component {
 
     constructor(props) {
         super(props);
-        /**
-         * Almacena los componentes abiertos en cada pestaña, para que al regresar a una pestaña abierta no vuelva a instanciar otro distinto.
-         */
-        this.componentsMap = new Map();
 
         this.state = {
             activeTab: null,
             data: []
         };
-    }
-
-    /**
-     * Se utiliza para cargar los componentes en el panel de cada pestaña. Cuando se vuelve a una pestaña ya abierta, en lugar de obtener el componente lazy de nuevo se 
-     * utiliza un mapa de componentes guardado en TabPanel.
-     * 
-     * @param {*} index Índice de la pestaña dentro del TabPanel.
-     * @param {*} component Componente por defecto que le correspondería a la pestaña. Si no existiera en el mapa (es decir, si abrimos una nueva pestaña), se devuelve este mismo 
-     * componente pero antes se almacena en el mapa de TabPanel.
-     * @returns Componente a mostrar en una pestaña.
-     */
-    getComponentFromIndex(index, component) {
-        if (this.componentsMap.has(index)) {
-            return this.componentsMap.get(index);
-        } else {
-            this.componentsMap.set(index, component);
-            return component;
-        }
     }
 
     /**
@@ -47,6 +26,44 @@ export default class TabPanel extends Component {
     onClickTabItem = (tab) => {
         // Modifica el estado del panel cambiando la pestaña activa.
         this.setState({ activeTab: tab });
+    }
+
+    /**
+     * Acción de click para cerrar una pestaña.
+     * 
+     * @param {*} tab Índice de la pestaña a eliminar.
+     */
+    onCloseTabItem = (tab) => {
+        // Clono los datos del estado del TabPanel.
+        let data = this.state.data.slice();
+
+        // Eliminar elemento por índice
+        data.splice(tab, 1);
+
+        // Calcular la nueva pestaña seleccionada
+        let newActiveTab;
+        // Si la longitud del nuevo contenido es mayor que cero, hago el cálculo
+        if (data.length > 0) {
+            // Esto lo hago sólo si se ha cerrado la pestaña activa
+            if (tab === this.state.activeTab) {
+                // Si se ha eliminado la primera pestaña, la pestaña activa es la cero
+                if (tab === 0) {
+                    newActiveTab = 0;
+                } else {
+                    // Si no se ha eliminado la primera pestaña, la nueva pestaña activa es la inmediatamente anterior.
+                    newActiveTab = tab - 1;
+                }
+            } else {
+                // Si se ha cerrado una pestaña distinta a la activa y es anterior a ésta, la nueva pestaña será una anterior
+                newActiveTab = this.state.activeTab > tab ? this.state.activeTab - 1 : this.state.activeTab;
+            }
+        } else {
+            // Si se han eliminado todas las pestañas, la nueva pestaña activa es null
+            newActiveTab = null;
+        }
+
+        // Modifico el estado: tanto los nuevos datos como la pestaña activa (la última en añadirse).
+        this.setState({ data: data, activeTab: newActiveTab })
     }
 
     /**
@@ -62,7 +79,8 @@ export default class TabPanel extends Component {
         // Modifico el listado añadiendo un nuevo tab.
         data.push({
             label: label,
-            content: tab
+            content: tab,
+            id: uuidv4()
         })
 
         // Modifico el estado: tanto los nuevos datos como la pestaña activa (la última en añadirse).
@@ -72,6 +90,7 @@ export default class TabPanel extends Component {
     render() {
         const {
             onClickTabItem,
+            onCloseTabItem,
             state: {
                 activeTab,
                 data,
@@ -96,6 +115,7 @@ export default class TabPanel extends Component {
                                     tabIndex={i}
                                     label={label}
                                     onClick={onClickTabItem}
+                                    onCloseClick={onCloseTabItem}
                                 />
                             );
                         })}
@@ -104,17 +124,17 @@ export default class TabPanel extends Component {
                     <div className="tab-content">
 
                         {data.map((step, i) => {
-                            // Luego se pinta el contenido de la pestaña como tal: primero obtengo el componente a pintar (que puede ser un componente nuevo o  
-                            // un contenido existente de una pestaña ya abierta a la que ha regresado el usuario).
-                            const LazyComponent = this.getComponentFromIndex(i, data[i].content);
-
+                            const LazyComponent = data[i].content;
+                            
                             // Muy importante esto: para cambiar lo que ve el usuario se utiliza el estilo. Las pestañas no activas tiene display none; debe ser así 
                             // porque si por ejemplo devolviese null o undefined el componente se cargaría de nuevo cada vez que cambio de pestaña y por tanto no mantendría el 
                             // estado.
+                            // OJO!!! NO usar como key el propio índice, puede dar lugar a comportamientos inesperados (por ejemplo, volver a llamar al constructor de un componente)
+                            // así como problemas de rendimiento.
                             return (
-                                <div key={'tabDiv$$' + i} style={{ display: i === activeTab ? 'block' : 'none' }}>
+                                <div key={'tabDiv$$' + data[i].id} style={{ display: i === activeTab ? 'block' : 'none' }}>
                                     <Suspense fallback={<div>Loading...</div>}>
-                                        <LazyComponent tab={i} />
+                                        <LazyComponent key={data[i].id} tab={i} />
                                     </Suspense>
                                 </div>
                             );

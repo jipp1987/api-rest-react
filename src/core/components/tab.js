@@ -16,6 +16,7 @@ import './styles/tabs.css';
         tabIndex: PropTypes.number.isRequired,
         label: PropTypes.string.isRequired,
         onClick: PropTypes.func.isRequired,
+        onCloseClick: PropTypes.func.isRequired,
     };
 
     /**
@@ -43,8 +44,9 @@ import './styles/tabs.css';
         }
 
         return (
-            <li key={'tabIndex$$' + tabIndex} className={className} onClick={onClick}>
-                {label}
+            <li key={'tabIndex$$' + tabIndex} className={className}>
+                <span onClick={onClick}>{label}</span>
+                <button style={{marginLeft: '10px'}} key={'tabIndexCloseButton$$' + tabIndex} onClick={() => this.props.onCloseClick(tabIndex)}>X</button>
             </li>
         );
     }

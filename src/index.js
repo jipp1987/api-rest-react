@@ -5,12 +5,16 @@ import TabPanel from './core/components/tab-panel';
 
 // Declaración de imports lazy
 const ClienteView = React.lazy(() => import('./impl/view/cliente-view'));
+const TipoClienteView = React.lazy(() => import('./impl/view/tipo-cliente-view'));
+const UsuarioView = React.lazy(() => import('./impl/view/usuario-view'));
 
 /**
  * Mapa de vistas cargadas con react lazy. Se utilizan desde el panel de pestañas para cargar las vistas.
  */
 const VIEW_MAP = {
-    'ClienteView': ClienteView
+    'ClienteView': ClienteView,
+    'TipoClienteView': TipoClienteView,
+    'UsuarioView': UsuarioView,
 }
 
 /**
