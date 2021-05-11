@@ -1,4 +1,5 @@
 import React from 'react';
+import DataTable from '../../core/components/data-table.js';
 import { OrderByTypes, OrderByClause } from '../utils/dao-utils';
 import ImageButton from '../components/image-button';
 import PropTypes from 'prop-types';
@@ -11,7 +12,7 @@ export default class ViewController extends React.Component {
     /**
      * Definición de tipos de propiedades. Si se le pasara un parámetro de un tipo no definido en este mapa, lanzaría excepción.
      */
-     static propTypes = {
+    static propTypes = {
         tab: PropTypes.number.isRequired,
     };
 
@@ -124,6 +125,25 @@ export default class ViewController extends React.Component {
     }
 
     /**
+     * Convierte un array json a un array de entidades del modelo de datos.
+     * 
+     * @param {*} json_result 
+     * @returns Lista de entidades según el modelo de datos correspondiente a la vista. 
+     */
+    convertFromJsonToEntityList(json_result) {
+        var result = [];
+
+        // Convertir entidad a entidad.
+        if (json_result !== null && json_result.length > 0) {
+            for (let i = 0; i < json_result.length; i++) {
+                result.push(this.entity_class.from(json_result[i]));
+            }
+        }
+
+        return result;
+    }
+
+    /**
      * Traer datos de la api.
      */
     fetchData = () => {
@@ -133,7 +153,7 @@ export default class ViewController extends React.Component {
                 (result) => {
                     this.setState({
                         isLoaded: true,
-                        items: result['response_object']
+                        items: this.convertFromJsonToEntityList(result['response_object'])
                     });
                 },
 
@@ -221,19 +241,42 @@ export default class ViewController extends React.Component {
         this.fetchData();
     }
 
-     /**
-     * Método de renderizado de toolbar de la tabla.
-     * 
-     * @returns Toolbar. 
-     */
-      renderToolbar() {
-        const { tab } = this.state;
-
+    /**
+    * Método de renderizado de toolbar de la tabla.
+    * 
+    * @returns Toolbar. 
+    */
+    renderToolbar() {
         return (
-            <div id={tab + ':listtoolbar'} style={{ display: 'inline-block', marginBottom: '2px', padding: '2px' }}>
-                <ImageButton id={tab + ':resetbutton'} title='Resetear orden' className='restart-button' onClick={() => this.restartOrder()} />
+            <div style={{ display: 'inline-block', marginBottom: '2px', padding: '2px' }}>
+                <ImageButton title='Resetear orden' className='restart-button' onClick={() => this.restartOrder()} />
             </div>
         );
+    }
+
+    renderTableView() {
+        const { error, isLoaded, items } = this.state;
+        const view_title = this.view_title;
+
+        if (error) {
+            return <div>Error: {error.message}</div>;
+        } else if (!isLoaded) {
+            return <div>Loading...</div>;
+        } else {
+            // TOOLBAR
+            const toolbar = this.renderToolbar();
+
+            return (
+                <div>
+                    <h3 style={{ marginBottom: '15px' }}>{view_title.toUpperCase()}</h3>
+
+                    {toolbar}
+
+                    <DataTable ref={this.dataTable} headers={this.headers} data={items} id_field_name={this.id_field_name}
+                        onHeaderOrderClick={(h) => this.add_order_by_header(h)} table_name={this.table_name} />
+                </div>
+            );
+        }
     }
 
 }

@@ -106,11 +106,12 @@ export default class TabPanel extends Component {
 
                         {data.map((step, i) => {
                             const label = data[i].label;
+                            const id = data[i].id;
 
                             // Primero pinto los botones de las pestañas, que contendrán la lógica de cambio y cierre de pestañas utilizando funciones definidas aquí.
                             return (
                                 <Tab
-                                    key={'tab$$' + i}
+                                    key={'tab$$' + id}
                                     activeTab={activeTab}
                                     tabIndex={i}
                                     label={label}
@@ -125,6 +126,7 @@ export default class TabPanel extends Component {
 
                         {data.map((step, i) => {
                             const LazyComponent = data[i].content;
+                            const id = data[i].id;
                             
                             // Muy importante esto: para cambiar lo que ve el usuario se utiliza el estilo. Las pestañas no activas tiene display none; debe ser así 
                             // porque si por ejemplo devolviese null o undefined el componente se cargaría de nuevo cada vez que cambio de pestaña y por tanto no mantendría el 
@@ -132,9 +134,9 @@ export default class TabPanel extends Component {
                             // OJO!!! NO usar como key el propio índice, puede dar lugar a comportamientos inesperados (por ejemplo, volver a llamar al constructor de un componente)
                             // así como problemas de rendimiento.
                             return (
-                                <div key={'tabDiv$$' + data[i].id} style={{ display: i === activeTab ? 'block' : 'none' }}>
+                                <div key={'tabDiv$$' + id} style={{ display: i === activeTab ? 'block' : 'none' }}>
                                     <Suspense fallback={<div>Loading...</div>}>
-                                        <LazyComponent key={data[i].id} tab={i} />
+                                        <LazyComponent key={id} tab={i} />
                                     </Suspense>
                                 </div>
                             );

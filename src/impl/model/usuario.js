@@ -3,7 +3,7 @@ import BaseEntity from './../../core/model/base_entity';
 /**
  * Modelo de entidad usuario.
  */
- export default class Usuario extends BaseEntity {
+export default class Usuario extends BaseEntity {
 
     // CONTRUCTOR
     constructor(usuario_id, username, password) {
@@ -38,14 +38,24 @@ import BaseEntity from './../../core/model/base_entity';
         this._password = password
     }
 
-    
+
     // MÉTODOS
     /**
      * 
      * @returns Devuelve el nombre del campo id de la clase.
      */
-     static getIdFieldName() {
+    static getIdFieldName() {
         return 'usuario_id';
+    }
+
+    /**
+     * Convertir de json a objeto.
+     * 
+     * @param {*} json 
+     * @returns Instancia de clase.
+     */
+    static from(json) {
+        return Object.assign(new Usuario(), json);
     }
 
 }

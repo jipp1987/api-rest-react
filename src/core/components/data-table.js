@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { resolve_property_by_string } from '../utils/helper-utils'
 import './styles/table.css';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Clase de tabla de datos.
@@ -8,7 +9,13 @@ import './styles/table.css';
 class DataTable extends Component {
     
     constructor(props) {
-        super(props)
+        super(props);
+
+        /**
+         * Id único de componente.
+         */
+        this.uuid = uuidv4();
+
         this.state = {
             headers: props.headers,
             data: props.data,
@@ -35,10 +42,13 @@ class DataTable extends Component {
      * @returns 
      */
     renderRowData(d, attributes) {
+        const table_name = this.props.table_name;
+        const uuid = this.uuid;
+
         return attributes.map(function (header) {
             // Utilizo la función resolve_property_by_string, la cual es capaz de resolver los atributos de un objeto, 
             // incluidos los de objetos anidados.
-            return <td key={header.field_name}
+            return <td key={uuid + ":" + table_name + ":" + header.field_name}
                 style={(header.field_format != null && (header.field_format === 'INTEGER' || header.field_format === 'FLOAT')) ?
                     { textAlign: "right" } : { textAlign: "left" }}
                 header={header.field_name}>{header.convert_value_as_header_format(resolve_property_by_string(header.field_name, d))}
@@ -52,11 +62,13 @@ class DataTable extends Component {
      * @returns 
      */
     renderTableData(data, attributes) {
-        const id_field_name = this.props.id_field_name;
+        const table_name = this.props.table_name;
+        const uuid = this.uuid;
 
         return data.map((d, index) => {
+            // Utilizo el nombre del campo id para obtener el identificador único de cada fila.
             return (
-                <tr key={d[id_field_name]}>
+                <tr key={uuid + ":" + table_name + ":row:" + d.uuid}>
                     {this.renderRowData(d, attributes)}
                 </tr>
             )
@@ -71,9 +83,12 @@ class DataTable extends Component {
      */
     renderHeaders(headers) {
         const headers_render = headers.map((step, i) => {
+            const uuid = this.uuid;
+            const table_name = this.props.table_name;
+
             return (
                 // En función del tipo de dato, alinear a izquierda o derecha. Los datos numéricos van a la derecha.
-                <th key={'header$' + headers[i].index}
+                <th key={uuid + ":" + table_name + ':header:' + headers[i].index}
                     style={(headers[i].field_format != null && (headers[i].field_format === 'INTEGER' || headers[i].field_format === 'FLOAT')) ?
                         { textAlign: "right", width: headers[i].width } : { textAlign: "left", width: headers[i].width }}>
 
@@ -92,6 +107,8 @@ class DataTable extends Component {
 
     render() {
         const { headers, data } = this.state;
+        const table_name = this.props.table_name;
+        const uuid = this.uuid;
 
         // A partir de las cabeceras seleccionadas, construyo una lista de atributos a mostrar.
         // const attributes = Object.keys(d);
@@ -107,7 +124,7 @@ class DataTable extends Component {
             <div style={{ display: 'block' }}>
                 <table className="my-table">
                     <thead>
-                        <tr key='headers_row'>
+                        <tr key={uuid + ":" + table_name + ":headers_row"}>
                             {headers_render}
                         </tr>
                     </thead>

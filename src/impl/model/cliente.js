@@ -3,8 +3,8 @@ import BaseEntity from './../../core/model/base_entity';
 /**
  * Modelo de entidad cliente.
  */
- export default class Cliente extends BaseEntity {
-    
+export default class Cliente extends BaseEntity {
+
     // CONTRUCTOR
     constructor(cliente_id, codigo, saldo, tipo_cliente, nombre, apellidos, usuario_creacion, usuario_ult_mod) {
         super();
@@ -88,9 +88,18 @@ import BaseEntity from './../../core/model/base_entity';
      * 
      * @returns Devuelve el nombre del campo id de la clase.
      */
-     static getIdFieldName() {
+    static getIdFieldName() {
         return 'cliente_id';
     }
 
+    /**
+     * Convertir de json a objeto.
+     * 
+     * @param {*} json 
+     * @returns Instancia de clase.
+     */
+    static from(json) {
+        return Object.assign(new Cliente(), json);
+    }
 
 }

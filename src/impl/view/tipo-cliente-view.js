@@ -1,5 +1,3 @@
-import React from 'react';
-import DataTable from '../../core/components/data-table.js';
 import HeaderHelper from '../../core/view/header-helper';
 import { FieldClause } from '../../core/utils/dao-utils';
 import ViewController from '../../core/view/view-controller';
@@ -16,9 +14,24 @@ class TipoClienteView extends ViewController {
         super(props);
 
         /**
+         * Clase de la entidad principal.
+         */
+        this.entity_class = TipoCliente;
+
+        /**
+         * Nombre de la clase.
+         */
+        this.table_name = "TipoCliente";
+
+        /**
+         * Título de la vista.
+         */
+        this.view_title = "Tipos de cliente";
+
+        /**
          * Nombre del campo id.
          */
-        this.id_field_name = TipoCliente.getIdFieldName();
+        this.id_field_name = this.entity_class.getIdFieldName();
 
         /**
          * Dirección de la API.
@@ -41,30 +54,6 @@ class TipoClienteView extends ViewController {
             new HeaderHelper(0, 'codigo', 'Código', '100px', null),
             new HeaderHelper(1, 'descripcion', 'Descripción', '200px', null),
         ];
-    }
-
-    renderTableView() {
-        const { error, isLoaded, items } = this.state;
-
-        if (error) {
-            return <div>Error: {error.message}</div>;
-        } else if (!isLoaded) {
-            return <div>Loading...</div>;
-        } else {
-            // TOOLBAR
-            const toolbar = this.renderToolbar();
-
-            return (
-                <div>
-                    <h3 style={{ marginBottom: '15px' }}>TIPOS DE CLIENTE</h3>
-
-                    {toolbar}
-
-                    <DataTable ref={this.dataTable} headers={this.headers} data={items} id_field_name={this.id_field_name}
-                        onHeaderOrderClick={(h) => this.add_order_by_header(h)} />
-                </div>
-            );
-        }
     }
 
     /**

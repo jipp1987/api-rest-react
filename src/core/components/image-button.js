@@ -6,9 +6,9 @@ import './styles/buttons.css';
  */
 export default function ImageButton(props) {
     return (
-        <div id={props.id + 'btnContainer'} className='btn-container' onClick={props.onClick} title={props.title}>
-            <button id={props.id + 'btn'} className={'image-button ' + props.className} />
-            <span id={props.id + 'txt'} className='btn-text'>{props.title}</span>
+        <div className='btn-container' onClick={props.onClick} title={props.title}>
+            <button className={'image-button ' + props.className} />
+            <span className='btn-text'>{props.title}</span>
         </div>
     );
 }
