@@ -3,6 +3,7 @@ import DataTable from '../../core/components/data-table.js';
 import { OrderByTypes, OrderByClause } from '../utils/dao-utils';
 import ImageButton from '../components/image-button';
 import PropTypes from 'prop-types';
+import { FormattedMessage } from "react-intl";
 
 /**
  * Controlador de mantenimiento de clientes.
@@ -249,7 +250,7 @@ export default class ViewController extends React.Component {
     renderToolbar() {
         return (
             <div style={{ display: 'inline-block', marginBottom: '2px', padding: '2px' }}>
-                <ImageButton title='Resetear orden' className='restart-button' onClick={() => this.restartOrder()} />
+                <ImageButton title='i18n_reset_order_button' className='restart-button' onClick={() => this.restartOrder()} />
             </div>
         );
     }
@@ -268,7 +269,7 @@ export default class ViewController extends React.Component {
 
             return (
                 <div>
-                    <h3 style={{ marginBottom: '15px' }}>{view_title.toUpperCase()}</h3>
+                    <h3 style={{ marginBottom: '15px', textTransform: 'uppercase' }}><FormattedMessage id={view_title} /></h3>
 
                     {toolbar}
 

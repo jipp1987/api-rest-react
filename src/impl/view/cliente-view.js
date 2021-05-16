@@ -21,12 +21,12 @@ class ClienteView extends ViewController {
         /**
          * Nombre de la clase.
          */
-        this.table_name = "Cliente";
+        this.table_name = "Clientes";
 
         /**
           * Título de la vista.
           */
-        this.view_title = "Clientes";
+        this.view_title = "i18n_clientes_title";
 
         /**
          * Nombre del campo id.
@@ -62,12 +62,12 @@ class ClienteView extends ViewController {
          * Array de objetos HeaderHelper para modelar las cabeceras.
          */
         this.headers = [
-            new HeaderHelper(0, 'codigo', 'Código', '100px', null),
-            new HeaderHelper(1, 'nombre', 'Nombre', '200px', null),
-            new HeaderHelper(2, 'apellidos', 'Apellidos', '200px', null),
-            new HeaderHelper(3, 'tipo_cliente.codigo', 'Código tipo de cliente', '250px', null),
-            new HeaderHelper(4, 'tipo_cliente.descripcion', 'Tipo de cliente', '250px', null),
-            new HeaderHelper(5, 'saldo', 'Saldo', '100px', 'FLOAT')
+            new HeaderHelper(0, 'codigo', 'i18n_common_code', '100px', null),
+            new HeaderHelper(1, 'nombre', 'i18n_common_first_name', '200px', null),
+            new HeaderHelper(2, 'apellidos', 'i18n_common_last_name', '200px', null),
+            new HeaderHelper(3, 'tipo_cliente.codigo', 'i18n_clientes_customer_type_codigo', '250px', null),
+            new HeaderHelper(4, 'tipo_cliente.descripcion', 'i18n_clientes_customer_type', '250px', null),
+            new HeaderHelper(5, 'saldo', 'i18n_clientes_saldo', '100px', 'FLOAT')
         ];
     }
 

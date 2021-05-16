@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import { FormattedMessage } from "react-intl";
 
 import './styles/tabs.css';
 
@@ -45,7 +46,7 @@ import './styles/tabs.css';
 
         return (
             <li key={'tabIndex$$' + tabIndex} className={className}>
-                <span onClick={onClick}>{label}</span>
+                <span onClick={onClick}><FormattedMessage id={label} /></span>
                 <button style={{marginLeft: '10px'}} key={'tabIndexCloseButton$$' + tabIndex} onClick={() => this.props.onCloseClick(tabIndex)}>X</button>
             </li>
         );

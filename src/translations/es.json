@@ -1,0 +1,20 @@
+{
+    "i18n_menu_title": "Menú",
+
+    "i18n_reset_order_button": "Resetear orden",
+
+    "i18n_common_code": "Código",
+    "i18n_common_first_name": "Nombre",
+    "i18n_common_last_name": "Apellidos",
+    "i18n_common_description": "Descripción",
+
+    "i18n_clientes_title": "Clientes",
+    "i18n_clientes_customer_type_codigo": "Código del tipo de cliente",
+    "i18n_clientes_customer_type": "Tipo de cliente",
+    "i18n_clientes_saldo": "Saldo",
+
+    "i18n_tipos_cliente_title": "Tipos de cliente",
+
+    "i18n_usuarios_title": "Usuarios",
+    "i18n_usuarios_username": "Nombre de usuario"
+}

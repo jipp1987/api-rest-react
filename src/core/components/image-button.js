@@ -1,3 +1,5 @@
+import { FormattedMessage } from "react-intl";
+
 import './styles/buttons.css';
 
 
@@ -6,9 +8,9 @@ import './styles/buttons.css';
  */
 export default function ImageButton(props) {
     return (
-        <div className='btn-container' onClick={props.onClick} title={props.title}>
+        <div className='btn-container' onClick={props.onClick}>
             <button className={'image-button ' + props.className} />
-            <span className='btn-text'>{props.title}</span>
+            <span className='btn-text'><FormattedMessage id={props.title} /></span>
         </div>
     );
 }

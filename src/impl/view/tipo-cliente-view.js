@@ -26,7 +26,7 @@ class TipoClienteView extends ViewController {
         /**
          * Título de la vista.
          */
-        this.view_title = "Tipos de cliente";
+        this.view_title = "i18n_tipos_cliente_title";
 
         /**
          * Nombre del campo id.
@@ -51,8 +51,8 @@ class TipoClienteView extends ViewController {
          * Array de objetos HeaderHelper para modelar las cabeceras.
          */
         this.headers = [
-            new HeaderHelper(0, 'codigo', 'Código', '100px', null),
-            new HeaderHelper(1, 'descripcion', 'Descripción', '200px', null),
+            new HeaderHelper(0, 'codigo', 'i18n_common_code', '100px', null),
+            new HeaderHelper(1, 'descripcion', 'i18n_common_description', '200px', null),
         ];
     }
 

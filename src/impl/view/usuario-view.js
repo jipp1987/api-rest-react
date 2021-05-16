@@ -26,7 +26,7 @@ class UsuarioView extends ViewController {
         /**
          * Título de la vista.
          */
-        this.view_title = "Usuarios";
+        this.view_title = "i18n_usuarios_title";
 
         /**
          * Nombre del campo id.
@@ -50,7 +50,7 @@ class UsuarioView extends ViewController {
          * Array de objetos HeaderHelper para modelar las cabeceras.
          */
         this.headers = [
-            new HeaderHelper(0, 'username', 'Nombre de usuario', '100px', null),
+            new HeaderHelper(0, 'username', 'i18n_usuarios_username', '100px', null),
         ];
     }
 

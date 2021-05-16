@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { resolve_property_by_string } from '../utils/helper-utils'
 import './styles/table.css';
 import { v4 as uuidv4 } from 'uuid';
+import { FormattedMessage } from "react-intl";
 
 /**
  * Clase de tabla de datos.
@@ -91,8 +92,9 @@ class DataTable extends Component {
                 <th key={uuid + ":" + table_name + ':header:' + headers[i].index}
                     style={(headers[i].field_format != null && (headers[i].field_format === 'INTEGER' || headers[i].field_format === 'FLOAT')) ?
                         { textAlign: "right", width: headers[i].width } : { textAlign: "left", width: headers[i].width }}>
-
-                    {headers[i].field_label}
+                    
+                    <FormattedMessage id={headers[i].field_label} />
+                    
                     <button className="order-button" onClick={() => this.props.onHeaderOrderClick(headers[i])}>
                         {headers[i].order_state == null ? String.fromCharCode(8691) : (headers[i].order_state === 'up' ? String.fromCharCode(8679) :
                             String.fromCharCode(8681))}

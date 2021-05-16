@@ -1,7 +1,18 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import './index.css';
+import { IntlProvider, FormattedMessage } from "react-intl";
 import TabPanel from './core/components/tab-panel';
+
+import messages_en from "./translations/en.json";
+import messages_es from "./translations/es.json";
+
+import './index.css';
+
+// Carga de mensajes
+const messages = {
+    'es': messages_es,
+    'en': messages_en
+};
 
 // Declaración de imports lazy
 const ClienteView = React.lazy(() => import('./impl/view/cliente-view'));
@@ -17,6 +28,7 @@ const VIEW_MAP = {
     'UsuarioView': UsuarioView,
 }
 
+
 /**
  * Clase menú.
  */
@@ -28,7 +40,7 @@ class Menu extends React.Component {
 
         this.state = {
             // Opciones del menú. El primera valor es el label, el segundo el identificador que se corresponde con VIEW_MAP para cargar en el panel de pestañas las vistas.
-            menuOptions: [['Clientes', 'ClienteView'], ['Tipos de cliente', 'TipoClienteView'], ['Usuarios', 'UsuarioView']],
+            menuOptions: [['i18n_clientes_title', 'ClienteView'], ['i18n_tipos_cliente_title', 'TipoClienteView'], ['i18n_usuarios_title', 'UsuarioView']],
         };
     }
 
@@ -39,7 +51,7 @@ class Menu extends React.Component {
         const items = menuOptions.map((item) => {
             return (
                 <li key={"leftMenuOption:" + item} onClick={() => this.props.onClick(item[0], item[1])}>
-                    <span>{item[0]}</span>
+                    <span><FormattedMessage id={item[0]} /></span>
                 </li>
             );
         });
@@ -53,9 +65,16 @@ class Menu extends React.Component {
 
 class App extends React.Component {
     constructor() {
-        super()
-        this.menu = React.createRef()
-        this.tabPanel = React.createRef()
+        super();
+        this.menu = React.createRef();
+        this.tabPanel = React.createRef();
+
+        this.state = {
+            /**
+             * Idioma por defecto
+             */
+            lang: "es"
+        };
     }
 
     addTabToTabPanel(l, m) {
@@ -63,36 +82,50 @@ class App extends React.Component {
     }
 
     render() {
+        // Obtengo el lenguage por defecto
+        const lang = this.state.lang;
+
         return (
-            <div id="main">
+            <IntlProvider locale={lang} messages={messages[lang]}>
+                <div id="main">
 
-                <div id="header">
-                    <h1>API REST</h1>
-                </div>
+                    <div id="header">
+                        <div style={{ float: 'left' }}>
+                            <h1>API REST</h1>
+                        </div>
 
-                <div id="container">
-
-                    <div id="leftMenu">
-                        <h4>MENÚ</h4><br />
-                        <Menu ref={this.menu} onClick={(l, t) => this.addTabToTabPanel(l, t)} />
-                    </div>
-
-                    <div id="panel">
-                        <div id="inner-panel">
-
-                            <TabPanel ref={this.tabPanel}>
-                            </TabPanel>
-
+                        <div style={{ float: 'right' }}>
+                            <div style={{display: 'flex', flexDirection: 'column'}}>
+                                <button style={{background: 'transparent', color: 'ghostwhite'}} onClick={() => { this.setState({ lang: "es" }) }}>CASTELLANO</button>
+                                <button style={{background: 'transparent', color: 'ghostwhite', marginTop: '5px'}} onClick={() => { this.setState({ lang: "en" }) }}>ENGLISH</button>
+                            </div>
                         </div>
                     </div>
 
-                </div>
+                    <div id="container">
 
-                <div id="footer">
-                    <b>2021</b>
-                </div>
+                        <div id="leftMenu">
+                            <h4 style={{ textTransform: 'uppercase' }}><FormattedMessage id="i18n_menu_title" /></h4><br />
+                            <Menu ref={this.menu} onClick={(l, t) => this.addTabToTabPanel(l, t)} />
+                        </div>
 
-            </div>
+                        <div id="panel">
+                            <div id="inner-panel">
+
+                                <TabPanel ref={this.tabPanel}>
+                                </TabPanel>
+
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div id="footer">
+                        <b>2021</b>
+                    </div>
+
+                </div>
+            </IntlProvider>
         );
     }
 }
