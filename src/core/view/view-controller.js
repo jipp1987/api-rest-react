@@ -3,6 +3,8 @@ import DataTable from '../../core/components/data-table.js';
 import { OrderByTypes, OrderByClause } from '../utils/dao-utils';
 import ImageButton from '../components/image-button';
 import PropTypes from 'prop-types';
+import { ViewStates } from "../utils/helper-utils";
+
 import { FormattedMessage } from "react-intl";
 
 /**
@@ -20,6 +22,7 @@ export default class ViewController extends React.Component {
     // CONSTRUCTOR
     constructor(props) {
         super(props);
+
         // Referencia a la tabla de datos para poder actualizarla.
         this.dataTable = React.createRef();
 
@@ -68,6 +71,11 @@ export default class ViewController extends React.Component {
          */
         this.headers = null;
 
+        /**
+         * Elemento seleccionado para edición, detalle y eliminación.
+         */
+        this.selectedItem = null;
+
         // Establecer estado para atributos de lectura/escritura.
         this.state = {
             /**
@@ -89,6 +97,11 @@ export default class ViewController extends React.Component {
              * Pestaña en la que está situado el controlador de vista.
              */
             tab: props.tab,
+
+            /**
+             * Estado del controlador de vista. Por defecto navegar a la vista de listado.
+             */
+            viewState: ViewStates.LIST,
         };
     }
 
@@ -243,18 +256,36 @@ export default class ViewController extends React.Component {
     }
 
     /**
+     * Navega a la vista de creación.
+     */
+    goToCreateView() {
+        // Instanciar nuevo elemento seleccionado según la clase asociada al controlador.
+        this.selectedItem = new this.entity_class();
+
+        this.setState({
+            viewState: ViewStates.EDIT
+        });
+    }
+
+    /**
     * Método de renderizado de toolbar de la tabla.
     * 
     * @returns Toolbar. 
     */
-    renderToolbar() {
+    renderToolbarList() {
         return (
-            <div style={{ display: 'inline-block', marginBottom: '2px', padding: '2px' }}>
+            <div className='toolbar'>
                 <ImageButton title='i18n_reset_order_button' className='restart-button' onClick={() => this.restartOrder()} />
+                <ImageButton title='i18n_add_button' className='add-button' onClick={() => this.goToCreateView()} />
             </div>
         );
     }
 
+    /**
+     * Renderizado de la vista de tabla o listado.
+     * 
+     * @returns Componente visual de tabla o listado. 
+     */
     renderTableView() {
         const { error, isLoaded, items } = this.state;
         const view_title = this.view_title;
@@ -265,7 +296,7 @@ export default class ViewController extends React.Component {
             return <div>Loading...</div>;
         } else {
             // TOOLBAR
-            const toolbar = this.renderToolbar();
+            const toolbar = this.renderToolbarList();
 
             return (
                 <div>
@@ -278,6 +309,79 @@ export default class ViewController extends React.Component {
                 </div>
             );
         }
+    }
+
+    /**
+     * Renderizado de formulario de edición y detalle. Pensado para implementar.
+     * 
+     * @returns Componente visual de formulario de edición/detalle.
+     */
+    renderDetailEditForm() {
+        return null;
+    }
+
+    /**
+     * Devuelve true si el controlador de vista está en modo detalle.
+     * 
+     * @returns bool
+     */
+    isInDetailMode() {
+        const { viewState } = this.state;
+        var isInDetailMode = false;
+
+        if (viewState !== null && viewState !== undefined && viewState === ViewStates.DETAIL) {
+            isInDetailMode = false;
+        }
+
+        return isInDetailMode;
+    }
+
+    /**
+     * Renderizado de la vista de edición.
+     * 
+     * @returns Componente visual de edición. 
+     */
+    renderEditView() {
+        const { error, isLoaded } = this.state;
+        const view_title = this.view_title;
+
+        if (error) {
+            return <div>Error: {error.message}</div>;
+        } else if (!isLoaded) {
+            return <div>Loading...</div>;
+        } else {
+            const editDetailForm = this.renderDetailEditForm();
+
+            return (
+                <div>
+                    <h3 style={{ marginBottom: '15px', textTransform: 'uppercase' }}><FormattedMessage id={view_title} /></h3>
+
+                    {editDetailForm}
+                </div>
+            );
+        }
+    }
+
+    /**
+     * Implementación del renderizado.
+     * 
+     * @returns Formulario del mantenimiento.
+     */
+    render() {
+        // La vista a renderizar depende del estado de este atributo.
+        const { viewState } = this.state;
+
+        switch (viewState) {
+            case ViewStates.LIST:
+                return this.renderTableView();
+            case ViewStates.EDIT:
+                return this.renderEditView();
+            case ViewStates.DETAIL:
+                return null;
+            default:
+                return null;
+        }
+
     }
 
 }

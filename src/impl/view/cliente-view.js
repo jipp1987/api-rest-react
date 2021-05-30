@@ -7,7 +7,7 @@ import { properties } from './../../properties';
 /**
  * Controlador de mantenimiento de clientes.
  */
-class ClienteView extends ViewController {
+export default class ClienteView extends ViewController {
 
     // CONSTRUCTOR
     constructor(props) {
@@ -71,15 +71,14 @@ class ClienteView extends ViewController {
         ];
     }
 
+    
     /**
-     * Implementación del renderizado.
+     * Implementación de renderizado de formulario de edición y detalle. Pensado para implementar.
      * 
-     * @returns Formulario del mantenimiento.
+     * @returns Componente visual de formulario de edición/detalle.
      */
-    render() {
-        return this.renderTableView();
+     renderDetailEditForm() {
+        return null;
     }
 
 }
-
-export default ClienteView;

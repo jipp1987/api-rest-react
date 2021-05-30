@@ -7,7 +7,7 @@ import Usuario from '../model/usuario';
 /**
  * Controlador de mantenimiento de clientes.
  */
-class UsuarioView extends ViewController {
+ export default class UsuarioView extends ViewController {
 
     // CONSTRUCTOR
     constructor(props) {
@@ -54,15 +54,14 @@ class UsuarioView extends ViewController {
         ];
     }
 
+    
     /**
-     * Implementación del renderizado.
+     * Implementación de renderizado de formulario de edición y detalle. Pensado para implementar.
      * 
-     * @returns Formulario del mantenimiento.
+     * @returns Componente visual de formulario de edición/detalle.
      */
-    render() {
-        return this.renderTableView();
+     renderDetailEditForm() {
+        return null;
     }
 
 }
-
-export default UsuarioView;

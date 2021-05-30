@@ -120,3 +120,18 @@ ul.menuLeft li span:hover {
     background: #f6f6f6;
     cursor: pointer;
 }
+
+/* ESTILOS TOOLBAR */
+
+.toolbar {
+    display: flex;
+    flex-direction: row;
+    margin-bottom: 2px;
+    padding: 2px;
+}
+
+/* Separar elementos de la toolbar excluyendo al primero. */
+.toolbar div:not(:first-child) {
+    float: left;
+    margin-left: 8px;
+}

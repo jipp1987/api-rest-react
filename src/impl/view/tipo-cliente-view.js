@@ -1,13 +1,15 @@
 import HeaderHelper from '../../core/view/header-helper';
+import MyInput from '../../core/components/my-input';
 import { FieldClause } from '../../core/utils/dao-utils';
 import ViewController from '../../core/view/view-controller';
 import { properties } from './../../properties';
 import TipoCliente from '../model/tipo_cliente';
+import { FormattedMessage } from "react-intl";
 
 /**
  * Controlador de mantenimiento de clientes.
  */
-class TipoClienteView extends ViewController {
+export default class TipoClienteView extends ViewController {
 
     // CONSTRUCTOR
     constructor(props) {
@@ -57,14 +59,30 @@ class TipoClienteView extends ViewController {
     }
 
     /**
-     * Implementación del renderizado.
+     * Implementación de renderizado de formulario de edición y detalle. Pensado para implementar.
      * 
-     * @returns Formulario del mantenimiento.
+     * @returns Componente visual de formulario de edición/detalle.
      */
-    render() {
-        return this.renderTableView();
+    renderDetailEditForm() {
+        const isInDetailMode = this.isInDetailMode();
+        
+        return (
+            <div>
+                <MyInput
+                    entity={this.selectedItem}
+                    valueName="codigo"
+                    label={<FormattedMessage id="i18n_common_code" />}
+                    maxLength={4}
+                    isEditing={!isInDetailMode} />
+
+                <MyInput
+                    entity={this.selectedItem}
+                    valueName="descripcion"
+                    label={<FormattedMessage id="i18n_common_description" />}
+                    maxLength={50}
+                    isEditing={!isInDetailMode} />
+            </div>
+        );
     }
 
 }
-
-export default TipoClienteView;

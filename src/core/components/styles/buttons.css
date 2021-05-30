@@ -21,3 +21,7 @@
 .restart-button {
     background: url("../../resources/restart.png") no-repeat;
 }
+
+.add-button {
+    background: url("../../resources/add.png") no-repeat;
+}

@@ -1,8 +1,9 @@
 import React, { Component } from 'react'
 import { resolve_property_by_string } from '../utils/helper-utils'
-import './styles/table.css';
 import { v4 as uuidv4 } from 'uuid';
 import { FormattedMessage } from "react-intl";
+
+import './styles/table.css';
 
 /**
  * Clase de tabla de datos.
