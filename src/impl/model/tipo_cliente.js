@@ -75,4 +75,14 @@ export default class TipoCliente extends BaseEntity {
         return Object.assign(new TipoCliente(), json);
     }
 
+    /**
+     * Método estático a implementar. Devuelve un array de strings con las propiedades de la clase a exportar en json.
+     * 
+     * @returns Listado de propiedades a exportar en json. 
+     */
+    getPropertiesList() {
+        const json_props = ['tipo_cliente_id', 'codigo', 'descripcion', 'usuario_creacion', 'usuario_ult_mod'];
+        return json_props;
+    }
+
 }

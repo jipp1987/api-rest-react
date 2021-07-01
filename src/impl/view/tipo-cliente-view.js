@@ -5,6 +5,7 @@ import ViewController from '../../core/view/view-controller';
 import { properties } from './../../properties';
 import TipoCliente from '../model/tipo_cliente';
 import { FormattedMessage } from "react-intl";
+import React from 'react';
 
 /**
  * Controlador de mantenimiento de clientes.
@@ -41,8 +42,8 @@ export default class TipoClienteView extends ViewController {
         this.url = properties.apiUrl + '/api/TipoCliente';
 
         /**
-             * Campos para la SELECT.
-             */
+         * Campos para la SELECT.
+         */
         this.fields = [
             new FieldClause("tipo_cliente_id", null),
             new FieldClause("codigo", null),
@@ -65,23 +66,34 @@ export default class TipoClienteView extends ViewController {
      */
     renderDetailEditForm() {
         const isInDetailMode = this.isInDetailMode();
-        
-        return (
-            <div>
-                <MyInput
-                    entity={this.selectedItem}
-                    valueName="codigo"
-                    label={<FormattedMessage id="i18n_common_code" />}
-                    maxLength={4}
-                    isEditing={!isInDetailMode} />
 
-                <MyInput
-                    entity={this.selectedItem}
-                    valueName="descripcion"
-                    label={<FormattedMessage id="i18n_common_description" />}
-                    maxLength={50}
-                    isEditing={!isInDetailMode} />
-            </div>
+        // Toolbar
+        const toolbar = this.renderToolbarEditDetail();
+
+        return (
+            <form method="POST" action="/" onSubmit={this.saveChanges}>
+                
+                {toolbar}
+
+                <div style={{marginTop: '10px'}}>
+                    <MyInput
+                        entity={this.selectedItem}
+                        valueName="codigo"
+                        label={<FormattedMessage id="i18n_common_code" />}
+                        maxLength={4}
+                        isEditing={!isInDetailMode}
+                        isRequired={true} />
+
+                    <MyInput
+                        entity={this.selectedItem}
+                        valueName="descripcion"
+                        label={<FormattedMessage id="i18n_common_description" />}
+                        maxLength={50}
+                        isEditing={!isInDetailMode}
+                        isRequired={true} />
+                </div>
+
+            </form>
         );
     }
 

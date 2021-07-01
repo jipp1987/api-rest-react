@@ -25,3 +25,11 @@
 .add-button {
     background: url("../../resources/add.png") no-repeat;
 }
+
+.back-button {
+    background: url("../../resources/back.png") no-repeat;
+}
+
+.save-button {
+    background: url("../../resources/save.png") no-repeat;
+}

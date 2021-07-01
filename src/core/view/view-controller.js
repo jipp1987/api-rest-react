@@ -110,7 +110,56 @@ export default class ViewController extends React.Component {
      * 
      * @returns 
      */
-    getRequestOptions() {
+    getRequestOptions(controllerState = null) {
+        let request_body;
+
+        // En función del estado del viewcontroller, el body de la petición será diferente.
+        var { viewState } = this.state;
+        
+        // Si se ha pasado un estado como parámetro significa que queremos forzar una consulta en concreto
+        if (controllerState !== undefined && controllerState !== null) {
+            viewState = controllerState;            
+        }
+
+        switch (viewState) {
+            case ViewStates.EDIT:
+                // La acción a realizar será 1 para creación (el objeto no tiene id) o 2 para edición (el objeto tiene id)
+                const action = this.selectedItem[this.id_field_name] !== undefined && this.selectedItem[this.id_field_name] !== null ? 2 : 1;
+                // A la api le tengo que pasar el objeto como un diccionario
+                const item_dict = this.selectedItem.toJsonDict();
+
+                request_body = {
+                    username: null,
+                    password: null,
+                    action: action,
+                    request_object: item_dict
+                };
+
+                break;
+
+            case ViewStates.DETAIL:
+                request_body = null;
+                break;
+
+            case ViewStates.LIST:
+            default:
+                request_body = {
+                    username: null,
+                    password: null,
+                    action: 4,
+                    request_object: {
+                        fields: this.fields,
+                        joins: this.joins,
+                        filters: this.filters,
+                        group_by: this.group_by,
+                        order: this.order
+                    }
+                };
+
+                break;
+        }
+
+
         // Objeto para envío de solicitud a API.
         const requestOptions = {
             method: 'POST',
@@ -121,18 +170,11 @@ export default class ViewController extends React.Component {
                 'Content-Type': 'application/json; charset=utf-8',
                 "Access-Control-Allow-Origin": "*"
             },
-            body: JSON.stringify({
-                username: null,
-                password: null,
-                action: 4,
-                request_object: {
-                    fields: this.fields,
-                    joins: this.joins,
-                    filters: this.filters,
-                    group_by: this.group_by,
-                    order: this.order
-                },
-            })
+
+            body: JSON.stringify(
+                request_body
+            )
+
         };
 
         return requestOptions;
@@ -161,7 +203,7 @@ export default class ViewController extends React.Component {
      * Traer datos de la api.
      */
     fetchData = () => {
-        fetch(this.url, this.getRequestOptions())
+        fetch(this.url, this.getRequestOptions(ViewStates.LIST))
             .then(res => res.json())
             .then(
                 (result) => {
@@ -282,6 +324,55 @@ export default class ViewController extends React.Component {
     }
 
     /**
+     * Vuelve a la vista del listado.
+     */
+    goToList() {
+        // Cargar datos
+        this.fetchData();
+
+        // Cambiar estado.
+        this.setState({
+            viewState: ViewStates.LIST
+        });
+    }
+
+    /**
+     * Maneja el evento de envío del objeto a la api.
+     * 
+     * @param {*} e 
+     */
+    saveChanges = async (e) => {
+        e.preventDefault();
+
+        const response = await fetch(this.url, this.getRequestOptions());
+        const result = await response.json();
+
+        // Si el resultado ha sido correcto es un código 200
+        if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
+            console.log(result['response_object']);
+            this.setState({ viewState: ViewStates.DETAIL });
+        }
+
+        this.setState({
+            viewState: ViewStates.DETAIL
+        });
+    };
+
+    /**
+    * Método de renderizado de toolbar de la tabla.
+    * 
+    * @returns Toolbar. 
+    */
+    renderToolbarEditDetail() {
+        return (
+            <div className='toolbar'>
+                <ImageButton title='i18n_back_button' className='back-button' onClick={(e) => { e.preventDefault(); this.goToList(); }} />
+                <ImageButton title='i18n_save_button' className='save-button' type='submit' />
+            </div>
+        );
+    }
+
+    /**
      * Renderizado de la vista de tabla o listado.
      * 
      * @returns Componente visual de tabla o listado. 
@@ -327,13 +418,7 @@ export default class ViewController extends React.Component {
      */
     isInDetailMode() {
         const { viewState } = this.state;
-        var isInDetailMode = false;
-
-        if (viewState !== null && viewState !== undefined && viewState === ViewStates.DETAIL) {
-            isInDetailMode = false;
-        }
-
-        return isInDetailMode;
+        return (viewState !== null && viewState !== undefined && viewState === ViewStates.DETAIL);
     }
 
     /**
@@ -375,9 +460,8 @@ export default class ViewController extends React.Component {
             case ViewStates.LIST:
                 return this.renderTableView();
             case ViewStates.EDIT:
-                return this.renderEditView();
             case ViewStates.DETAIL:
-                return null;
+                return this.renderEditView();
             default:
                 return null;
         }

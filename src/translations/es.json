@@ -3,6 +3,8 @@
 
     "i18n_reset_order_button": "Resetear orden",
     "i18n_add_button": "Añadir",
+    "i18n_back_button": "Volver",
+    "i18n_save_button": "Guardar",
 
     "i18n_common_code": "Código",
     "i18n_common_first_name": "Nombre",

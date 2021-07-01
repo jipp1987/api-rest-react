@@ -58,4 +58,14 @@ export default class Usuario extends BaseEntity {
         return Object.assign(new Usuario(), json);
     }
 
+    /**
+     * Método estático a implementar. Devuelve un array de strings con las propiedades de la clase a exportar en json.
+     * 
+     * @returns Listado de propiedades a exportar en json. 
+     */
+    getPropertiesList() {
+        const json_props = ['usuario_id', 'username', 'password'];
+        return json_props;
+    }
+
 }
