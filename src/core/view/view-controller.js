@@ -2,10 +2,11 @@ import React from 'react';
 import DataTable from '../../core/components/data-table.js';
 import { OrderByTypes, OrderByClause } from '../utils/dao-utils';
 import ImageButton from '../components/image-button';
+import LoadingIndicator from '../components/loading-indicator';
 import PropTypes from 'prop-types';
 import { ViewStates } from "../utils/helper-utils";
-
 import { FormattedMessage } from "react-intl";
+import { trackPromise } from 'react-promise-tracker';
 
 /**
  * Controlador de mantenimiento de clientes.
@@ -84,11 +85,6 @@ export default class ViewController extends React.Component {
             error: null,
 
             /**
-             * Se ha cargado en la api.
-             */
-            isLoaded: false,
-
-            /**
              * Lista de datos para mostrar en la tabla.
              */
             items: [],
@@ -115,10 +111,10 @@ export default class ViewController extends React.Component {
 
         // En función del estado del viewcontroller, el body de la petición será diferente.
         var { viewState } = this.state;
-        
+
         // Si se ha pasado un estado como parámetro significa que queremos forzar una consulta en concreto
         if (controllerState !== undefined && controllerState !== null) {
-            viewState = controllerState;            
+            viewState = controllerState;
         }
 
         switch (viewState) {
@@ -203,26 +199,28 @@ export default class ViewController extends React.Component {
      * Traer datos de la api.
      */
     fetchData = () => {
-        fetch(this.url, this.getRequestOptions(ViewStates.LIST))
-            .then(res => res.json())
-            .then(
-                (result) => {
-                    this.setState({
-                        isLoaded: true,
-                        items: this.convertFromJsonToEntityList(result['response_object'])
-                    });
-                },
 
-                // Nota: es importante manejar errores aquí y no en 
-                // un bloque catch() para que no interceptemos errores
-                // de errores reales en los componentes.
-                (error) => {
-                    this.setState({
-                        isLoaded: true,
-                        error
-                    });
-                }
-            )
+        trackPromise(
+            fetch(this.url, this.getRequestOptions(ViewStates.LIST))
+                .then(res => res.json())
+                .then(
+                    (result) => {
+                        this.setState({
+                            items: this.convertFromJsonToEntityList(result['response_object'])
+                        });
+                    },
+
+                    // Nota: es importante manejar errores aquí y no en 
+                    // un bloque catch() para que no interceptemos errores
+                    // de errores reales en los componentes.
+                    (error) => {
+                        this.setState({
+                            error
+                        });
+                    }
+                )
+        );
+
     }
 
     componentDidMount() {
@@ -372,19 +370,18 @@ export default class ViewController extends React.Component {
         );
     }
 
+    
     /**
      * Renderizado de la vista de tabla o listado.
      * 
      * @returns Componente visual de tabla o listado. 
      */
     renderTableView() {
-        const { error, isLoaded, items } = this.state;
+        const { error, items } = this.state;
         const view_title = this.view_title;
 
         if (error) {
             return <div>Error: {error.message}</div>;
-        } else if (!isLoaded) {
-            return <div>Loading...</div>;
         } else {
             // TOOLBAR
             const toolbar = this.renderToolbarList();
@@ -394,6 +391,8 @@ export default class ViewController extends React.Component {
                     <h3 style={{ marginBottom: '15px', textTransform: 'uppercase' }}><FormattedMessage id={view_title} /></h3>
 
                     {toolbar}
+
+                    <LoadingIndicator />
 
                     <DataTable ref={this.dataTable} headers={this.headers} data={items} id_field_name={this.id_field_name}
                         onHeaderOrderClick={(h) => this.add_order_by_header(h)} table_name={this.table_name} />
@@ -427,19 +426,19 @@ export default class ViewController extends React.Component {
      * @returns Componente visual de edición. 
      */
     renderEditView() {
-        const { error, isLoaded } = this.state;
+        const { error } = this.state;
         const view_title = this.view_title;
 
         if (error) {
             return <div>Error: {error.message}</div>;
-        } else if (!isLoaded) {
-            return <div>Loading...</div>;
         } else {
             const editDetailForm = this.renderDetailEditForm();
 
             return (
                 <div>
                     <h3 style={{ marginBottom: '15px', textTransform: 'uppercase' }}><FormattedMessage id={view_title} /></h3>
+
+                    <LoadingIndicator />
 
                     {editDetailForm}
                 </div>

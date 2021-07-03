@@ -63,6 +63,7 @@ class Menu extends React.Component {
 
 }
 
+
 class App extends React.Component {
     constructor() {
         super();
@@ -95,9 +96,9 @@ class App extends React.Component {
                         </div>
 
                         <div style={{ float: 'right' }}>
-                            <div style={{display: 'flex', flexDirection: 'column'}}>
-                                <button style={{background: 'transparent', color: 'ghostwhite'}} onClick={() => { this.setState({ lang: "es" }) }}>CASTELLANO</button>
-                                <button style={{background: 'transparent', color: 'ghostwhite', marginTop: '5px'}} onClick={() => { this.setState({ lang: "en" }) }}>ENGLISH</button>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <button style={{ background: 'transparent', color: 'ghostwhite' }} onClick={() => { this.setState({ lang: "es" }) }}>CASTELLANO</button>
+                                <button style={{ background: 'transparent', color: 'ghostwhite', marginTop: '5px' }} onClick={() => { this.setState({ lang: "en" }) }}>ENGLISH</button>
                             </div>
                         </div>
                     </div>
