@@ -393,7 +393,7 @@ export default class ViewController extends React.Component {
 
                     {toolbar}
 
-                    <LoadingIndicator />
+                    <LoadingIndicator parentContainer={this.props.parentContainer} />
 
                     <DataTable ref={this.dataTable} headers={this.headers} data={items} id_field_name={this.id_field_name}
                         onHeaderOrderClick={(h) => this.add_order_by_header(h)} table_name={this.table_name} />

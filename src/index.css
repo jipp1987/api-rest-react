@@ -59,7 +59,7 @@ button {
 #leftMenu {
     padding: 30px;
     width: 10%;
-    height: 790px;
+    height: 760px;
     /* Hay que restar el padding */
     background-color: rgb(237, 239, 243);
 }
@@ -68,7 +68,7 @@ button {
 
 #panel {
     width: 100%;
-    height: 850px;
+    height: 810px;
     background-color: ghostwhite;
 }
 

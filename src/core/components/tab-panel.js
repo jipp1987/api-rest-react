@@ -133,8 +133,10 @@ export default class TabPanel extends Component {
                             // estado.
                             // OJO!!! NO usar como key el propio índice, puede dar lugar a comportamientos inesperados (por ejemplo, volver a llamar al constructor de un componente)
                             // así como problemas de rendimiento.
+                            // Observar que la posición es relativa. Esto es así para que los modales (con posición absoluta) sólo afecten a la pestaña sobre la que están abiertos
+                            // y no a toda la pantalla.
                             return (
-                                <div key={'tabDiv$$' + id} id={'tabDiv$$' + id} style={{ display: i === activeTab ? 'block' : 'none' }}>
+                                <div key={'tabDiv$$' + id} id={'tabDiv$$' + id} style={{ display: i === activeTab ? 'block' : 'none', position: 'relative', height: '100%' }}>
                                     <Suspense fallback={<div>Loading...</div>}>
                                         <LazyComponent key={id} tab={i} parentContainer={'tabDiv$$' + id} />
                                     </Suspense>
