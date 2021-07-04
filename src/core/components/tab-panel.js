@@ -134,9 +134,9 @@ export default class TabPanel extends Component {
                             // OJO!!! NO usar como key el propio índice, puede dar lugar a comportamientos inesperados (por ejemplo, volver a llamar al constructor de un componente)
                             // así como problemas de rendimiento.
                             return (
-                                <div key={'tabDiv$$' + id} style={{ display: i === activeTab ? 'block' : 'none' }}>
+                                <div key={'tabDiv$$' + id} id={'tabDiv$$' + id} style={{ display: i === activeTab ? 'block' : 'none' }}>
                                     <Suspense fallback={<div>Loading...</div>}>
-                                        <LazyComponent key={id} tab={i} />
+                                        <LazyComponent key={id} tab={i} parentContainer={'tabDiv$$' + id} />
                                     </Suspense>
                                 </div>
                             );

@@ -18,6 +18,7 @@ export default class ViewController extends React.Component {
      */
     static propTypes = {
         tab: PropTypes.number.isRequired,
+        parentContainer: PropTypes.string.isRequired
     };
 
     // CONSTRUCTOR
@@ -438,7 +439,7 @@ export default class ViewController extends React.Component {
                 <div>
                     <h3 style={{ marginBottom: '15px', textTransform: 'uppercase' }}><FormattedMessage id={view_title} /></h3>
 
-                    <LoadingIndicator />
+                    <LoadingIndicator parentContainer={this.props.parentContainer} />
 
                     {editDetailForm}
                 </div>
