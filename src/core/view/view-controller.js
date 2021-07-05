@@ -340,21 +340,30 @@ export default class ViewController extends React.Component {
      * 
      * @param {*} e 
      */
-    saveChanges = async (e) => {
+    saveChanges(e) {
         e.preventDefault();
 
-        const response = await fetch(this.url, this.getRequestOptions());
-        const result = await response.json();
+        trackPromise(
+            fetch(this.url, this.getRequestOptions())
+                .then(res => res.json())
+                .then(
+                    (result) => {
+                        console.log(result['response_object']);
+                        
+                        // Si el resultado ha sido correcto es un código 200
+                        if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
+                            this.setState({ viewState: ViewStates.DETAIL });
+                        }
+                    },
 
-        // Si el resultado ha sido correcto es un código 200
-        if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
-            console.log(result['response_object']);
-            this.setState({ viewState: ViewStates.DETAIL });
-        }
-
-        this.setState({
-            viewState: ViewStates.DETAIL
-        });
+                    // Nota: es importante manejar errores aquí y no en 
+                    // un bloque catch() para que no interceptemos errores
+                    // de errores reales en los componentes.
+                    (error) => {
+                        console.log(error)
+                    }
+                )
+        );
     };
 
     /**
@@ -371,7 +380,7 @@ export default class ViewController extends React.Component {
         );
     }
 
-    
+
     /**
      * Renderizado de la vista de tabla o listado.
      * 
@@ -390,11 +399,7 @@ export default class ViewController extends React.Component {
             return (
                 <div>
                     <h3 style={{ marginBottom: '15px', textTransform: 'uppercase' }}><FormattedMessage id={view_title} /></h3>
-
                     {toolbar}
-
-                    <LoadingIndicator parentContainer={this.props.parentContainer} />
-
                     <DataTable ref={this.dataTable} headers={this.headers} data={items} id_field_name={this.id_field_name}
                         onHeaderOrderClick={(h) => this.add_order_by_header(h)} table_name={this.table_name} />
                 </div>
@@ -403,11 +408,13 @@ export default class ViewController extends React.Component {
     }
 
     /**
-     * Renderizado de formulario de edición y detalle. Pensado para implementar.
+     * Implementación de renderizado de formulario de edición y detalle. Pensado para implementar.
      * 
+     * @param {boolean} isInDetailMode Si true se mostrarán todos los campos deshabilitados.
+     *  
      * @returns Componente visual de formulario de edición/detalle.
      */
-    renderDetailEditForm() {
+    renderDetailEditForm(isInDetailMode = false) {
         return null;
     }
 
@@ -433,15 +440,24 @@ export default class ViewController extends React.Component {
         if (error) {
             return <div>Error: {error.message}</div>;
         } else {
-            const editDetailForm = this.renderDetailEditForm();
+            const editDetailForm = this.renderDetailEditForm(this.isInDetailMode());
+
+            // Toolbar
+            const toolbar = this.renderToolbarEditDetail();
 
             return (
                 <div>
                     <h3 style={{ marginBottom: '15px', textTransform: 'uppercase' }}><FormattedMessage id={view_title} /></h3>
 
-                    <LoadingIndicator parentContainer={this.props.parentContainer} />
+                    <form method="POST" action="/" onSubmit={(e) => this.saveChanges(e)}>
 
-                    {editDetailForm}
+                        {toolbar}
+
+                        <div style={{ marginTop: '10px' }}>
+                            {editDetailForm}
+                        </div>
+
+                    </form>
                 </div>
             );
         }
@@ -456,15 +472,22 @@ export default class ViewController extends React.Component {
         // La vista a renderizar depende del estado de este atributo.
         const { viewState } = this.state;
 
+        let selectedView;
+
         switch (viewState) {
             case ViewStates.LIST:
-                return this.renderTableView();
+                selectedView = this.renderTableView();
+                break;
             case ViewStates.EDIT:
             case ViewStates.DETAIL:
-                return this.renderEditView();
+                selectedView = this.renderEditView();
+                break;
             default:
-                return null;
+                selectedView = null;
+                break;
         }
+
+        return <div><LoadingIndicator parentContainer={this.props.parentContainer} />{selectedView}</div>
 
     }
 

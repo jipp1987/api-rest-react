@@ -62,38 +62,29 @@ export default class TipoClienteView extends ViewController {
     /**
      * Implementación de renderizado de formulario de edición y detalle. Pensado para implementar.
      * 
+     * @param {boolean} isInDetailMode Si true se mostrarán todos los campos deshabilitados.
+     *  
      * @returns Componente visual de formulario de edición/detalle.
      */
-    renderDetailEditForm() {
-        const isInDetailMode = this.isInDetailMode();
-
-        // Toolbar
-        const toolbar = this.renderToolbarEditDetail();
-
+    renderDetailEditForm(isInDetailMode = false) {
         return (
-            <form method="POST" action="/" onSubmit={this.saveChanges}>
-                
-                {toolbar}
+            <div>
+                <MyInput
+                    entity={this.selectedItem}
+                    valueName="codigo"
+                    label={<FormattedMessage id="i18n_common_code" />}
+                    maxLength={4}
+                    isEditing={!isInDetailMode}
+                    isRequired={true} />
 
-                <div style={{marginTop: '10px'}}>
-                    <MyInput
-                        entity={this.selectedItem}
-                        valueName="codigo"
-                        label={<FormattedMessage id="i18n_common_code" />}
-                        maxLength={4}
-                        isEditing={!isInDetailMode}
-                        isRequired={true} />
-
-                    <MyInput
-                        entity={this.selectedItem}
-                        valueName="descripcion"
-                        label={<FormattedMessage id="i18n_common_description" />}
-                        maxLength={50}
-                        isEditing={!isInDetailMode}
-                        isRequired={true} />
-                </div>
-
-            </form>
+                <MyInput
+                    entity={this.selectedItem}
+                    valueName="descripcion"
+                    label={<FormattedMessage id="i18n_common_description" />}
+                    maxLength={50}
+                    isEditing={!isInDetailMode}
+                    isRequired={true} />
+            </div>
         );
     }
 
