@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import { IntlProvider, FormattedMessage } from "react-intl";
 import TabPanel from './core/components/tab-panel';
+import { Toaster } from 'react-hot-toast';
 
 import messages_en from "./translations/en.json";
 import messages_es from "./translations/es.json";
@@ -113,8 +114,30 @@ class App extends React.Component {
                         <div id="panel">
                             <div id="inner-panel">
 
-                                <TabPanel ref={this.tabPanel}>
-                                </TabPanel>
+                                <Toaster
+                                    position="top-right"
+                                    containerStyle={{
+                                        position: 'relative',
+                                    }}
+                                    toastOptions={{
+                                        // Define default options
+                                        className: '',
+                                        duration: 5000,
+                                        style: {
+                                            background: '#363636',
+                                            color: '#fff',
+                                        },
+                                        // Default options for specific types
+                                        success: {
+                                            duration: 3000,
+                                            theme: {
+                                                primary: 'green',
+                                                secondary: 'black',
+                                            },
+                                        },
+                                    }} />
+
+                                <TabPanel ref={this.tabPanel} />
 
                             </div>
                         </div>

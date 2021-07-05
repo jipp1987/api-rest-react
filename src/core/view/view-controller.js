@@ -5,8 +5,10 @@ import ImageButton from '../components/image-button';
 import LoadingIndicator from '../components/loading-indicator';
 import PropTypes from 'prop-types';
 import { ViewStates } from "../utils/helper-utils";
+
 import { FormattedMessage } from "react-intl";
 import { trackPromise } from 'react-promise-tracker';
+import toast from 'react-hot-toast';
 
 /**
  * Controlador de mantenimiento de clientes.
@@ -80,11 +82,6 @@ export default class ViewController extends React.Component {
 
         // Establecer estado para atributos de lectura/escritura.
         this.state = {
-            /**
-             * Se ha producido error durante la carga en la api.
-             */
-            error: null,
-
             /**
              * Lista de datos para mostrar en la tabla.
              */
@@ -215,9 +212,7 @@ export default class ViewController extends React.Component {
                     // un bloque catch() para que no interceptemos errores
                     // de errores reales en los componentes.
                     (error) => {
-                        this.setState({
-                            error
-                        });
+                        toast.error(error.message);
                     }
                 )
         );
@@ -348,11 +343,12 @@ export default class ViewController extends React.Component {
                 .then(res => res.json())
                 .then(
                     (result) => {
-                        console.log(result['response_object']);
-                        
                         // Si el resultado ha sido correcto es un código 200
                         if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
                             this.setState({ viewState: ViewStates.DETAIL });
+                            toast.success(result['response_object']);
+                        } else {
+                            toast.error(result['response_object']);
                         }
                     },
 
@@ -360,7 +356,8 @@ export default class ViewController extends React.Component {
                     // un bloque catch() para que no interceptemos errores
                     // de errores reales en los componentes.
                     (error) => {
-                        console.log(error)
+                        // TODO Manejar este error
+                        toast.error(error.message);
                     }
                 )
         );
@@ -387,12 +384,9 @@ export default class ViewController extends React.Component {
      * @returns Componente visual de tabla o listado. 
      */
     renderTableView() {
-        const { error, items } = this.state;
+        const { items } = this.state;
         const view_title = this.view_title;
 
-        if (error) {
-            return <div>Error: {error.message}</div>;
-        } else {
             // TOOLBAR
             const toolbar = this.renderToolbarList();
 
@@ -404,7 +398,6 @@ export default class ViewController extends React.Component {
                         onHeaderOrderClick={(h) => this.add_order_by_header(h)} table_name={this.table_name} />
                 </div>
             );
-        }
     }
 
     /**
@@ -434,33 +427,28 @@ export default class ViewController extends React.Component {
      * @returns Componente visual de edición. 
      */
     renderEditView() {
-        const { error } = this.state;
         const view_title = this.view_title;
 
-        if (error) {
-            return <div>Error: {error.message}</div>;
-        } else {
-            const editDetailForm = this.renderDetailEditForm(this.isInDetailMode());
+        const editDetailForm = this.renderDetailEditForm(this.isInDetailMode());
 
-            // Toolbar
-            const toolbar = this.renderToolbarEditDetail();
+        // Toolbar
+        const toolbar = this.renderToolbarEditDetail();
 
-            return (
-                <div>
-                    <h3 style={{ marginBottom: '15px', textTransform: 'uppercase' }}><FormattedMessage id={view_title} /></h3>
+        return (
+            <div>
+                <h3 style={{ marginBottom: '15px', textTransform: 'uppercase' }}><FormattedMessage id={view_title} /></h3>
 
-                    <form method="POST" action="/" onSubmit={(e) => this.saveChanges(e)}>
+                <form method="POST" action="/" onSubmit={(e) => this.saveChanges(e)}>
 
-                        {toolbar}
+                    {toolbar}
 
-                        <div style={{ marginTop: '10px' }}>
-                            {editDetailForm}
-                        </div>
+                    <div style={{ marginTop: '10px' }}>
+                        {editDetailForm}
+                    </div>
 
-                    </form>
-                </div>
-            );
-        }
+                </form>
+            </div>
+        );
     }
 
     /**
