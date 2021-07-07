@@ -45,7 +45,7 @@ export default function Modal(props) {
   // Es decir, se lanza el evento de cierre sólo al hacer click fuera del modal (y si se ha establecido una función de cierre)
   // props-children no se define como tal en las propiedades del componente, sino que es la parte entre las etiquetas de apertura y cierre del mismo
   return ReactDOM.createPortal(
-    <div className="modal" onClick={props.onClose}>
+    <div id={props.id} className="modal" onClick={props.onClose}>
 
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
 

@@ -1,10 +1,14 @@
 import React from 'react';
-import DataTable from '../../core/components/data-table.js';
+import PropTypes from 'prop-types';
+import { v4 as uuidv4 } from 'uuid';
+
+import { ViewStates } from "../utils/helper-utils";
 import { OrderByTypes, OrderByClause } from '../utils/dao-utils';
+
+import DataTable from '../../core/components/data-table.js';
 import ImageButton from '../components/image-button';
 import LoadingIndicator from '../components/loading-indicator';
-import PropTypes from 'prop-types';
-import { ViewStates } from "../utils/helper-utils";
+import Modal from "./../components/modal";
 
 import { FormattedMessage } from "react-intl";
 import { trackPromise } from 'react-promise-tracker';
@@ -96,6 +100,11 @@ export default class ViewController extends React.Component {
              * Estado del controlador de vista. Por defecto navegar a la vista de listado.
              */
             viewState: ViewStates.LIST,
+
+            /**
+             * Lista de paneles modales abiertos en el controlador.
+             */
+            modalList: []
         };
     }
 
@@ -377,6 +386,35 @@ export default class ViewController extends React.Component {
         );
     }
 
+    /**
+     * Función de borrado de elementos de la tabla.
+     * 
+     * @param {entityClass} Elemento a eliminar. 
+     */
+    deleteItem = (elementToDelete) => {
+        // Copio la lista de modales
+        const modalList = this.state.modalList.splice();
+
+        // Le añado un nuevo modal
+        const modal =
+            <div
+                style={{
+                    width: "100%",
+                    height: "100",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center"
+                }}
+            >
+                <span>ENTRO!!!</span>
+            </div>
+
+        modalList.push(modal);
+
+        // Actualizo el estado del controlador
+        this.setState({ modalList: modalList });
+    }
+
 
     /**
      * Renderizado de la vista de tabla o listado.
@@ -387,17 +425,20 @@ export default class ViewController extends React.Component {
         const { items } = this.state;
         const view_title = this.view_title;
 
-            // TOOLBAR
-            const toolbar = this.renderToolbarList();
+        // TOOLBAR
+        const toolbar = this.renderToolbarList();
 
-            return (
-                <div>
-                    <h3 style={{ marginBottom: '15px', textTransform: 'uppercase' }}><FormattedMessage id={view_title} /></h3>
-                    {toolbar}
-                    <DataTable ref={this.dataTable} headers={this.headers} data={items} id_field_name={this.id_field_name}
-                        onHeaderOrderClick={(h) => this.add_order_by_header(h)} table_name={this.table_name} />
-                </div>
-            );
+        return (
+            <div>
+                <h3 style={{ marginBottom: '15px', textTransform: 'uppercase' }}><FormattedMessage id={view_title} /></h3>
+
+                {toolbar}
+
+                <DataTable ref={this.dataTable} headers={this.headers} data={items} id_field_name={this.id_field_name}
+                    onHeaderOrderClick={(h) => this.add_order_by_header(h)} table_name={this.table_name}
+                    deleteAction={this.deleteItem} />
+            </div>
+        );
     }
 
     /**
@@ -458,7 +499,7 @@ export default class ViewController extends React.Component {
      */
     render() {
         // La vista a renderizar depende del estado de este atributo.
-        const { viewState } = this.state;
+        const { viewState, modalList } = this.state;
 
         let selectedView;
 
@@ -475,7 +516,22 @@ export default class ViewController extends React.Component {
                 break;
         }
 
-        return <div><LoadingIndicator parentContainer={this.props.parentContainer} />{selectedView}</div>
+        // Cargamos el waitStatus, la vista seleccionada y la lista de modalPanels
+        return (
+            <div>
+                <LoadingIndicator parentContainer={this.props.parentContainer} />
+
+                {selectedView}
+
+                {modalList.map(d => {
+                    const modalUuid = "modalPanel$$" + uuidv4();
+
+                    return <Modal title={<FormattedMessage id="i18n_common_confirm" />}
+                        show={true} id={modalUuid} key={modalUuid}
+                        parentContainer={this.props.parentContainer}>{d}</Modal>
+                })}
+            </div>
+        );
 
     }
 

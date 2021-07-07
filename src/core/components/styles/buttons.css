@@ -33,3 +33,7 @@
 .save-button {
     background: url("../../resources/save.png") no-repeat;
 }
+
+.delete {
+    background: url("../../resources/delete.jpg") no-repeat;
+}

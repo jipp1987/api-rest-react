@@ -6,7 +6,10 @@
     "i18n_back_button": "Volver",
     "i18n_save_button": "Guardar",
 
+    "i18n_common_confirm": "Confirmar",
+    "i18n_common_actions": "Acciones",
     "i18n_common_loading": "Cargando...",
+    "i18n_common_delete": "Eliminar",
     "i18n_common_code": "Código",
     "i18n_common_first_name": "Nombre",
     "i18n_common_last_name": "Apellidos",

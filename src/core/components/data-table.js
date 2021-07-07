@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { resolve_property_by_string } from '../utils/helper-utils'
 import { v4 as uuidv4 } from 'uuid';
 import { FormattedMessage } from "react-intl";
+import ImageButton from './image-button';
 
 import './styles/table.css';
 
@@ -9,7 +10,7 @@ import './styles/table.css';
  * Clase de tabla de datos.
  */
 class DataTable extends Component {
-    
+
     constructor(props) {
         super(props);
 
@@ -35,7 +36,7 @@ class DataTable extends Component {
     }
 
     //componentDidUpdate(nextProps) {
-        // Esto se ejecuta tras getDerivedStateFromProps. Puede ser útil si condicionalmente hay que hacer algo en ese momento.
+    // Esto se ejecuta tras getDerivedStateFromProps. Puede ser útil si condicionalmente hay que hacer algo en ese momento.
     //}
 
     /**
@@ -47,15 +48,23 @@ class DataTable extends Component {
         const table_name = this.props.table_name;
         const uuid = this.uuid;
 
-        return attributes.map(function (header) {
+        // Columna de acciones
+        const actionColumn = <td key={uuid + ":" + table_name + ":column:actions:" + d.uuid} style={{width: '10px'}}>
+            <ImageButton className='delete' onClick={() => this.props.deleteAction(d)} />
+        </td>;
+
+        // Columnas a partir de los atributos del objeto
+        const columns = attributes.map(function (header) {
             // Utilizo la función resolve_property_by_string, la cual es capaz de resolver los atributos de un objeto, 
             // incluidos los de objetos anidados.
-            return <td key={uuid + ":" + table_name + ":" + header.field_name}
+            return <td key={uuid + ":" + table_name + ":column:" + header.field_name}
                 style={(header.field_format != null && (header.field_format === 'INTEGER' || header.field_format === 'FLOAT')) ?
                     { textAlign: "right" } : { textAlign: "left" }}
                 header={header.field_name}>{header.convert_value_as_header_format(resolve_property_by_string(header.field_name, d))}
             </td>
         });
+
+        return <tr key={uuid + ":" + table_name + ":row:" + d.uuid}>{actionColumn}{columns}</tr>
     }
 
     /**
@@ -64,17 +73,10 @@ class DataTable extends Component {
      * @returns 
      */
     renderTableData(data, attributes) {
-        const table_name = this.props.table_name;
-        const uuid = this.uuid;
-
         return data.map((d, index) => {
             // Utilizo el nombre del campo id para obtener el identificador único de cada fila.
-            return (
-                <tr key={uuid + ":" + table_name + ":row:" + d.uuid}>
-                    {this.renderRowData(d, attributes)}
-                </tr>
-            )
-        })
+            return this.renderRowData(d, attributes);
+        });
     }
 
     /**
@@ -84,18 +86,23 @@ class DataTable extends Component {
      * @returns headers_render
      */
     renderHeaders(headers) {
-        const headers_render = headers.map((step, i) => {
-            const uuid = this.uuid;
-            const table_name = this.props.table_name;
+        const uuid = this.uuid;
+        const table_name = this.props.table_name;
 
+        // Cabecera para columna de acciones
+        const actions_header = <th key={uuid + ":" + table_name + ':header:actionColumnHeader'}>
+            <FormattedMessage id="i18n_common_actions" />
+        </th>
+
+        const headers_render = headers.map((step, i) => {
             return (
                 // En función del tipo de dato, alinear a izquierda o derecha. Los datos numéricos van a la derecha.
                 <th key={uuid + ":" + table_name + ':header:' + headers[i].index}
                     style={(headers[i].field_format != null && (headers[i].field_format === 'INTEGER' || headers[i].field_format === 'FLOAT')) ?
                         { textAlign: "right", width: headers[i].width } : { textAlign: "left", width: headers[i].width }}>
-                    
+
                     <FormattedMessage id={headers[i].field_label} />
-                    
+
                     <button className="order-button" onClick={() => this.props.onHeaderOrderClick(headers[i])}>
                         {headers[i].order_state == null ? String.fromCharCode(8691) : (headers[i].order_state === 'up' ? String.fromCharCode(8679) :
                             String.fromCharCode(8681))}
@@ -105,13 +112,11 @@ class DataTable extends Component {
             );
         });
 
-        return headers_render;
+        return <tr key={uuid + ":" + table_name + ":headers_row"}>{actions_header}{headers_render}</tr>;
     }
 
     render() {
         const { headers, data } = this.state;
-        const table_name = this.props.table_name;
-        const uuid = this.uuid;
 
         // A partir de las cabeceras seleccionadas, construyo una lista de atributos a mostrar.
         // const attributes = Object.keys(d);
@@ -127,9 +132,7 @@ class DataTable extends Component {
             <div style={{ display: 'block' }}>
                 <table className="my-table">
                     <thead>
-                        <tr key={uuid + ":" + table_name + ":headers_row"}>
-                            {headers_render}
-                        </tr>
+                        {headers_render}
                     </thead>
 
                     <tbody>

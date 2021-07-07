@@ -1,5 +1,5 @@
 import { FormattedMessage } from "react-intl";
-import React  from 'react';
+import React from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 import './styles/buttons.css';
@@ -23,10 +23,13 @@ export default function ImageButton(props) {
         id = uuidv4();
     }
 
+    const label = props.title !== undefined && props.title !== null ? 
+        <span onClick={() => document.getElementById(id).click()} className='btn-text'><FormattedMessage id={props.title} /></span> : null;
+
     return (
         <div className='btn-container'>
             <button id={id} className={'image-button ' + props.className} type={type} onClick={props.onClick} />
-            <span onClick={() => document.getElementById(id).click()} className='btn-text'><FormattedMessage id={props.title} /></span>
+            {label}
         </div>
     );
 }
