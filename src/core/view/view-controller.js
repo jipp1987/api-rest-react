@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { v4 as uuidv4 } from 'uuid';
 
-import { ViewStates } from "../utils/helper-utils";
+import { ViewStates, ModalModel } from "../utils/helper-utils";
 import { OrderByTypes, OrderByClause } from '../utils/dao-utils';
 
 import DataTable from '../../core/components/data-table.js';
@@ -387,16 +387,54 @@ export default class ViewController extends React.Component {
     }
 
     /**
+     * Añade un nuevo modal a la lista del controlador. Actualiza el estado del controlador de vista.
+     * 
+     * @param {string} title 
+     * @param {any} content 
+     */
+    addModal(title, content) {
+        // Copio la lista de modales
+        const modalList = this.state.modalList !== undefined && this.state.modalList !== null ? this.state.modalList.splice() : [];
+
+        // Id del modal
+        const modalUuid = "modalPanel$$" + uuidv4();
+
+        // Contenedor padre: será el panel de la pestaña del viewcontroller si es el primer modal de la lista, 
+        // o bien el panel modal del último elemento si la lista ya tiene contenido
+        const parentContainer = modalList.length === 0 ? this.props.parentContainer : modalList[modalList.length - 1].id;
+
+        // Añadir a la lista de modales
+        modalList.push(new ModalModel(title, modalUuid, parentContainer, content));
+
+        // Actualizo el estado del controlador
+        this.setState({ modalList: modalList });
+    }
+
+    /**
+     * Elimina un modal del listado del controlador de vista.
+     * 
+     * @param {int} modalIndex 
+     */
+    removeModal = (modalIndex) => {
+        // Copio la lista de modales
+        const modalList = this.state.modalList.splice();
+
+        if (modalList !== undefined && modalList !== null && modalIndex > -1) {
+            modalList.splice(modalIndex, 1);
+        }
+
+        // Actualizo el estado del controlador
+        this.setState({ modalList: modalList });
+    }
+
+    /**
      * Función de borrado de elementos de la tabla.
      * 
      * @param {entityClass} Elemento a eliminar. 
      */
     deleteItem = (elementToDelete) => {
-        // Copio la lista de modales
-        const modalList = this.state.modalList.splice();
-
         // Le añado un nuevo modal
-        const modal =
+        const modalContent =
             <div
                 style={{
                     width: "100%",
@@ -409,10 +447,9 @@ export default class ViewController extends React.Component {
                 <span>ENTRO!!!</span>
             </div>
 
-        modalList.push(modal);
 
-        // Actualizo el estado del controlador
-        this.setState({ modalList: modalList });
+        // Añadir modal y actualizar estado
+        this.addModal("i18n_common_confirm", modalContent);
     }
 
 
@@ -523,12 +560,10 @@ export default class ViewController extends React.Component {
 
                 {selectedView}
 
-                {modalList.map(d => {
-                    const modalUuid = "modalPanel$$" + uuidv4();
-
-                    return <Modal title={<FormattedMessage id="i18n_common_confirm" />}
-                        show={true} id={modalUuid} key={modalUuid}
-                        parentContainer={this.props.parentContainer}>{d}</Modal>
+                {modalList.map((step, i) => {
+                    return <Modal title={<FormattedMessage id={step.title} />}
+                        id={step.id} key={step.id} index={i} onClose={() => this.removeModal(i)}
+                        parentContainer={step.parentContainer}>{step.content}</Modal>
                 })}
             </div>
         );

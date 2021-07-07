@@ -16,7 +16,6 @@ export default function LoadingIndicator(props) {
 
     return promiseInProgress &&
         <Modal title={<FormattedMessage id="i18n_common_loading" />}
-            show={true}
             parentContainer={props.parentContainer}>
             <div
                 style={{
@@ -27,6 +26,7 @@ export default function LoadingIndicator(props) {
                     alignItems: "center"
                 }}
             >
+                
                 <Loader type="ThreeDots" color="#C0C0C0" height="100" width="100" />
 
             </div>

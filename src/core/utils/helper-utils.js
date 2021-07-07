@@ -77,6 +77,21 @@ function focusNextElement(currentElementId) {
     }
 }
 
+/**
+ * Modelado para modales. 
+ */
+class ModalModel {
+
+    // CONTRUCTOR
+    constructor(title, id, parentContainer, content) {
+        this.title = title;
+        this.id = id;
+        this.parentContainer = parentContainer;
+        this.content = content;
+    }
+
+}
+
 
 // Exportar como módulo.
-module.exports = { ViewStates, resolve_property_by_string, number_format, focusNextElement }
+module.exports = { ViewStates, resolve_property_by_string, number_format, focusNextElement, ModalModel }

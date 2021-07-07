@@ -4,11 +4,6 @@ import ReactDOM from 'react-dom';
 import "./styles/modal.css";
 
 export default function Modal(props) {
-  // Si la propiedad show ha llegado como false, entonces devolver null (no se muestra el modal)
-  if (!props.show) {
-    return null;
-  }
-
   // Comprobar si ha llegado una función para onClose: en ese caso, crear sección para botón "cerrar modal"
   var closeButton = null;
   if (props.onClose !== undefined && props.onClose !== null) {
@@ -21,11 +16,11 @@ export default function Modal(props) {
 
     // Usar hook de efecto: añadir un evento al cuerpo del documento para cerrar el modal
     useEffect(() => {
-      document.body.addEventListener('keydown', closeOnEscapeKeyDown);
+      document.getElementById(parentContainer).addEventListener('keydown', closeOnEscapeKeyDown);
 
       // Eliminar el evento del cuerpo del documento
       return function cleanup() {
-        document.body.removeEventListener('keydown', closeOnEscapeKeyDown);
+        document.getElementById(parentContainer).removeEventListener('keydown', closeOnEscapeKeyDown);
       }
     }, []);
 
@@ -39,7 +34,7 @@ export default function Modal(props) {
   }
 
   // Contenedor padre del modal
-  const parentContainer = props.parentContainer !== undefined && props.parentContainer !== null ? props.parentContainer : 'root'; 
+  const parentContainer = props.parentContainer !== undefined && props.parentContainer !== null ? props.parentContainer : 'root';
 
   // Usamos stopPropagation para evitar que al hacer click en el interior del modal se lance el evento de cierre
   // Es decir, se lanza el evento de cierre sólo al hacer click fuera del modal (y si se ha establecido una función de cierre)
@@ -51,8 +46,9 @@ export default function Modal(props) {
 
         <div className="modal-header">
           <h4 className="modal-title">{props.title}</h4>
-          {closeButton}
         </div>
+
+        {closeButton}
 
         <div className="modal-body">{props.children}</div>
 

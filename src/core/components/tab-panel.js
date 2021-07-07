@@ -125,8 +125,8 @@ export default class TabPanel extends Component {
                     <div className="tab-content">
 
                         {data.map((step, i) => {
-                            const LazyComponent = data[i].content;
-                            const id = data[i].id;
+                            const LazyComponent = step.content;
+                            const id = step.id;
                             
                             // Muy importante esto: para cambiar lo que ve el usuario se utiliza el estilo. Las pestañas no activas tiene display none; debe ser así 
                             // porque si por ejemplo devolviese null o undefined el componente se cargaría de nuevo cada vez que cambio de pestaña y por tanto no mantendría el 
