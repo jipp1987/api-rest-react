@@ -109,6 +109,33 @@ export default class ViewController extends React.Component {
     }
 
     /**
+     * Paso final para obtener las request options.
+     * 
+     * @param {*} request_body 
+     * @returns Mapa de requestoptions para peticiones a la API.
+     */
+    getRequestOptionsFinal(request_body) {
+        // Objeto para envío de solicitud a API.
+        const requestOptions = {
+            method: 'POST',
+            mode: 'cors',
+            cache: 'default',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json; charset=utf-8',
+                "Access-Control-Allow-Origin": "*"
+            },
+
+            body: JSON.stringify(
+                request_body
+            )
+
+        };
+
+        return requestOptions;
+    }
+
+    /**
      * Devuelve las opciones para la request a la api.
      * 
      * @returns 
@@ -164,23 +191,7 @@ export default class ViewController extends React.Component {
 
 
         // Objeto para envío de solicitud a API.
-        const requestOptions = {
-            method: 'POST',
-            mode: 'cors',
-            cache: 'default',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json; charset=utf-8',
-                "Access-Control-Allow-Origin": "*"
-            },
-
-            body: JSON.stringify(
-                request_body
-            )
-
-        };
-
-        return requestOptions;
+        return this.getRequestOptionsFinal(request_body);
     }
 
     /**
@@ -392,9 +403,9 @@ export default class ViewController extends React.Component {
      * @param {string} title 
      * @param {any} content 
      */
-    addModal(title, content) {
+    addModal = (title, content) => {
         // Copio la lista de modales
-        const modalList = this.state.modalList !== undefined && this.state.modalList !== null ? this.state.modalList.splice() : [];
+        const modalList = this.state.modalList.slice();
 
         // Id del modal
         const modalUuid = "modalPanel$$" + uuidv4();
@@ -417,7 +428,7 @@ export default class ViewController extends React.Component {
      */
     removeModal = (modalIndex) => {
         // Copio la lista de modales
-        const modalList = this.state.modalList.splice();
+        const modalList = this.state.modalList.slice();
 
         if (modalList !== undefined && modalList !== null && modalIndex > -1) {
             modalList.splice(modalIndex, 1);
@@ -428,11 +439,11 @@ export default class ViewController extends React.Component {
     }
 
     /**
-     * Función de borrado de elementos de la tabla.
+     * Función de preparado de borrado de elementos de la tabla.
      * 
      * @param {entityClass} Elemento a eliminar. 
      */
-    deleteItem = (elementToDelete) => {
+    confirmDeleteItem = (elementToDelete) => {
         // Le añado un nuevo modal
         const modalContent =
             <div
@@ -444,12 +455,59 @@ export default class ViewController extends React.Component {
                     alignItems: "center"
                 }}
             >
-                <span>ENTRO!!!</span>
+                <ImageButton className='delete' onClick={() => {
+                    this.deleteItem(elementToDelete);
+                    this.removeModal(this.state.modalList.length - 1);
+                }} />
             </div>
 
 
         // Añadir modal y actualizar estado
         this.addModal("i18n_common_confirm", modalContent);
+    }
+
+    /**
+     * Función de de borrado de elementos.
+     * 
+     * @param {entityClass} Elemento a eliminar. 
+     */
+    deleteItem = (elementToDelete) => {
+        // A la api le tengo que pasar el objeto como un diccionario
+        const item_dict = elementToDelete.toJsonDict();
+
+        // Cuerpo de la solicitud a la API
+        const request_body = {
+            username: null,
+            password: null,
+            action: 3,
+            request_object: item_dict
+        };
+
+        const request_options = this.getRequestOptionsFinal(request_body);
+
+        trackPromise(
+            fetch(this.url, request_options)
+                .then(res => res.json())
+                .then(
+                    (result) => {
+                        // Si el resultado ha sido correcto es un código 200
+                        if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
+                            toast.success(result['response_object']);
+                            // Cargar datos
+                            this.fetchData();
+                        } else {
+                            toast.error(result['response_object']);
+                        }
+                    },
+
+                    // Nota: es importante manejar errores aquí y no en 
+                    // un bloque catch() para que no interceptemos errores
+                    // de errores reales en los componentes.
+                    (error) => {
+                        toast.error(error.message);
+                    }
+                )
+        );
     }
 
 
@@ -473,7 +531,7 @@ export default class ViewController extends React.Component {
 
                 <DataTable ref={this.dataTable} headers={this.headers} data={items} id_field_name={this.id_field_name}
                     onHeaderOrderClick={(h) => this.add_order_by_header(h)} table_name={this.table_name}
-                    deleteAction={this.deleteItem} />
+                    deleteAction={this.confirmDeleteItem} />
             </div>
         );
     }

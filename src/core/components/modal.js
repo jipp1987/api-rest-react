@@ -1,29 +1,17 @@
-import React, { useEffect } from "react";
+import React from "react";
 import ReactDOM from 'react-dom';
 
 import "./styles/modal.css";
 
 export default function Modal(props) {
+  
   // Comprobar si ha llegado una función para onClose: en ese caso, crear sección para botón "cerrar modal"
   var closeButton = null;
+  
+  // Contenedor padre del modal
+  const parentContainer = props.parentContainer !== undefined && props.parentContainer !== null ? props.parentContainer : 'root';
+  
   if (props.onClose !== undefined && props.onClose !== null) {
-    // Crear un evento para cerrar el modal al presionar la tecla ESC
-    const closeOnEscapeKeyDown = (e) => {
-      if ((e.charCode || e.keyCode) === 27) {
-        props.onClose();
-      }
-    }
-
-    // Usar hook de efecto: añadir un evento al cuerpo del documento para cerrar el modal
-    useEffect(() => {
-      document.getElementById(parentContainer).addEventListener('keydown', closeOnEscapeKeyDown);
-
-      // Eliminar el evento del cuerpo del documento
-      return function cleanup() {
-        document.getElementById(parentContainer).removeEventListener('keydown', closeOnEscapeKeyDown);
-      }
-    }, []);
-
     // Crear sección para mostrar el botón de cerrar
     closeButton =
       <div className="modal-footer">
@@ -32,9 +20,7 @@ export default function Modal(props) {
         </button>
       </div>
   }
-
-  // Contenedor padre del modal
-  const parentContainer = props.parentContainer !== undefined && props.parentContainer !== null ? props.parentContainer : 'root';
+  
 
   // Usamos stopPropagation para evitar que al hacer click en el interior del modal se lance el evento de cierre
   // Es decir, se lanza el evento de cierre sólo al hacer click fuera del modal (y si se ha establecido una función de cierre)

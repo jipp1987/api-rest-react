@@ -61,7 +61,7 @@ export default class BaseEntity {
       // Descartar aquellas propiedades undefined.
       if (this[json_properties[i]] !== undefined) {
         // Importante comprobar si alguna de las propiedades es un objeto que sea también una BaseEntity, en ese caso deberá llamar a su propio toJsonDict.
-        if (this[json_properties[i]].prototype instanceof BaseEntity) {
+        if (this[json_properties[i]] !== null && this[json_properties[i]].prototype instanceof BaseEntity) {
           json_dict[json_properties[i]] = this[json_properties[i]].toJsonDict();
         } else {
           json_dict[json_properties[i]] = this[json_properties[i]];
