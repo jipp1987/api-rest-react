@@ -1,3 +1,30 @@
+/* FLATBUTTONS */
+
+.flat-button {
+    text-align: center;
+    text-decoration: none;
+    font-size: 14px;
+    white-space: nowrap;
+    -webkit-font-smoothing: antialiased;
+    color: #FFF;
+    background: rgb(108, 109, 116);
+    display: inline-block;
+    padding: 7px 20px;
+    margin: 10px 0px;
+    border: 3px solid rgba(0, 0, 0, 0.16);
+    -webkit-transition: all 0.25s ease;
+    -ms-transition: all 0.25s ease;
+    -moz-transition: all 0.25s ease;
+    -o-transition: all 0.25s ease;
+    transition: all 0.25s ease;
+}
+
+.flat-button:hover {
+    background: rgba(0, 0, 0, 0.8);
+}
+
+/* IMAGEBUTTONS */
+
 .btn-container {
     display: flex;
     cursor: pointer;
@@ -20,6 +47,10 @@
 
 .restart-button {
     background: url("../../resources/restart.png") no-repeat;
+}
+
+.close-button {
+    background: url("../../resources/close.png") no-repeat;
 }
 
 .add-button {

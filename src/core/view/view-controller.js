@@ -5,14 +5,17 @@ import { v4 as uuidv4 } from 'uuid';
 import { ViewStates, ModalModel } from "../utils/helper-utils";
 import { OrderByTypes, OrderByClause } from '../utils/dao-utils';
 
-import DataTable from '../../core/components/data-table.js';
+import DataTable from '../components/data-table.js';
 import ImageButton from '../components/image-button';
 import LoadingIndicator from '../components/loading-indicator';
-import Modal from "./../components/modal";
+import Modal from "../components/modal";
 
 import { FormattedMessage } from "react-intl";
 import { trackPromise } from 'react-promise-tracker';
 import toast from 'react-hot-toast';
+
+
+import "./../components/styles/buttons.css";
 
 /**
  * Controlador de mantenimiento de clientes.
@@ -451,14 +454,27 @@ export default class ViewController extends React.Component {
                     width: "100%",
                     height: "100",
                     display: "flex",
+                    flexDirection: "column",
                     justifyContent: "center",
                     alignItems: "center"
                 }}
             >
-                <ImageButton className='delete' onClick={() => {
-                    this.deleteItem(elementToDelete);
-                    this.removeModal(this.state.modalList.length - 1);
-                }} />
+
+                <div style={{ padding: '0px 20px' }}>
+                    <span><FormattedMessage id="i18n_common_delete_item" /></span>
+                </div>
+
+                <div>
+                    <button className='flat-button' onClick={() => {
+                        this.deleteItem(elementToDelete);
+                        this.removeModal(this.state.modalList.length - 1);
+                    }}><FormattedMessage id="i18n_common_yes" /></button>
+
+                    <button className='flat-button' style={{ marginLeft: '10px' }} onClick={() =>
+                        this.removeModal(this.state.modalList.length - 1)
+                    }><FormattedMessage id="i18n_common_no" /></button>
+                </div>
+
             </div>
 
 

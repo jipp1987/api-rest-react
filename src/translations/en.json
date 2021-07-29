@@ -6,6 +6,10 @@
     "i18n_back_button": "Back",
     "i18n_save_button": "Save",
 
+    "i18n_common_yes": "Yes",
+    "i18n_common_no": "No",
+    "i18n_common_delete_item": "Do you want to delete the selected item?",
+
     "i18n_common_confirm": "Confirm",
     "i18n_common_actions": "Actions",
     "i18n_common_loading": "Loading...",

@@ -28,7 +28,7 @@ export default function ImageButton(props) {
 
     return (
         <div className='btn-container'>
-            <button id={id} className={'image-button ' + props.className} type={type} onClick={props.onClick} />
+            <button id={id} className={'image-button ' + props.className} type={type} onClick={props.onClick} style={props.style} />
             {label}
         </div>
     );

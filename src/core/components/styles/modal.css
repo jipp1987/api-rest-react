@@ -11,21 +11,27 @@
   }
   
   .modal-content {
-    width: 500px;
-    background-color: #fff;
+    background-color: #f6f6f6;
   }
   
-  .modal-header,
-  .modal-footer {
-    padding: 10px;
+  .modal-header {
+    padding: 5px 10px 20px 10px;
+    margin: 0;
   }
   
   .modal-title {
-    margin: 0;
+    float: left;
+    width: 95%;
+    text-align: center;
+    font-weight: bold;
+  }
+
+  .close-button-div {
+    float: right;
+    width: auto;
   }
   
   .modal-body {
     padding: 10px;
-    border-top: 1px solid #eee;
-    border-bottom: 1px solid #eee;
+    border-top: 1px solid rgba(108, 109, 116);
   }
