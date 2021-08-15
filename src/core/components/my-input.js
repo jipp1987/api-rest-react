@@ -18,7 +18,8 @@ export default class MyInput extends React.Component {
         maxLength: PropTypes.number,
         minLength: PropTypes.number,
         isEditing: PropTypes.bool,
-        isRequired: PropTypes.bool
+        isRequired: PropTypes.bool,
+        post_action: PropTypes.func
     };
 
     constructor(props) {
@@ -44,7 +45,7 @@ export default class MyInput extends React.Component {
         const { isEditing, isRequired } = nextProps;
 
         // Lo que hago es comparar los datos del estado previo con los nuevos que vengan en las propiedades entrantes. Si son distintos, actualizo el estado.
-        return isEditing === prevState.isEditing && isRequired === prevState.isRequired
+        return isEditing === prevState.isEditing && isRequired === prevState.isRequired 
             ? null
             : { isEditing: isEditing, isRequired: isRequired };
     }
@@ -57,6 +58,17 @@ export default class MyInput extends React.Component {
 
         // El cambio de estado es tanto del valor del input como de la entidad, para mantenerla actualizada 
         this.setState({ value: newValue, entity: entity });
+    }
+
+    /**
+     * Acción posterior tras perder el foco.
+     * 
+     * @returns null
+     */
+    onBlur() {
+        if (this.props.post_action !== undefined && this.props.post_action != null) {
+            this.props.post_action();
+        }
     }
 
     /**
@@ -102,6 +114,7 @@ export default class MyInput extends React.Component {
                         type="text"
                         className="my-input"
                         onChange={(e) => this.handleChange(e)}
+                        onBlur={() => this.onBlur()}
                         size={size}
                         maxLength={maxLength}
                         minLength={minLength}

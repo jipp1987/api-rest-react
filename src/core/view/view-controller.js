@@ -143,7 +143,7 @@ export default class ViewController extends React.Component {
      * 
      * @returns 
      */
-    getRequestOptions(controllerState = null) {
+    getRequestOptions(controllerState = null, fields = null, joins = null, filters = null, group_by = null, order = null, is_count = false) {
         let request_body;
 
         // En función del estado del viewcontroller, el body de la petición será diferente.
@@ -176,16 +176,24 @@ export default class ViewController extends React.Component {
 
             case ViewStates.LIST:
             default:
+                // Cargar parámetros de consulta: si vienen como argumentos se utilizan ésos, sino los del propio controller.
+                const fields_param = fields !== undefined && fields !== null ? fields : this.fields;
+                const joins_param = joins !== undefined && joins !== null ? joins : this.joins;
+                const filters_param = filters !== undefined && filters !== null ? filters : this.filters;
+                const group_by_param = group_by !== undefined && group_by !== null ? group_by : this.group_by;
+                const order_param = order !== undefined && order !== null ? order : this.order;
+
                 request_body = {
                     username: null,
                     password: null,
                     action: 4,
                     request_object: {
-                        fields: this.fields,
-                        joins: this.joins,
-                        filters: this.filters,
-                        group_by: this.group_by,
-                        order: this.order
+                        fields: fields_param,
+                        joins: joins_param,
+                        filters: filters_param,
+                        group_by: group_by_param,
+                        order: order_param,
+                        is_count: is_count
                     }
                 };
 
@@ -361,29 +369,37 @@ export default class ViewController extends React.Component {
     saveChanges(e) {
         e.preventDefault();
 
-        trackPromise(
-            fetch(this.url, this.getRequestOptions())
-                .then(res => res.json())
-                .then(
-                    (result) => {
-                        // Si el resultado ha sido correcto es un código 200
-                        if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
-                            this.setState({ viewState: ViewStates.DETAIL });
-                            toast.success(result['response_object']);
-                        } else {
-                            toast.error(result['response_object']);
-                        }
-                    },
+        // Comprobar primero que no hay errores en el formulario a través del campo del elemento seleccionado
+        if (this.selectedItem.errorMessagesInForm.size === 0) {
+            trackPromise(
+                fetch(this.url, this.getRequestOptions())
+                    .then(res => res.json())
+                    .then(
+                        (result) => {
+                            // Si el resultado ha sido correcto es un código 200
+                            if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
+                                this.setState({ viewState: ViewStates.DETAIL });
+                                toast.success(result['response_object']);
+                            } else {
+                                toast.error(result['response_object']);
+                            }
+                        },
 
-                    // Nota: es importante manejar errores aquí y no en 
-                    // un bloque catch() para que no interceptemos errores
-                    // de errores reales en los componentes.
-                    (error) => {
-                        // TODO Manejar este error
-                        toast.error(error.message);
-                    }
-                )
-        );
+                        // Nota: es importante manejar errores aquí y no en 
+                        // un bloque catch() para que no interceptemos errores
+                        // de errores reales en los componentes.
+                        (error) => {
+                            // TODO Manejar este error
+                            toast.error(error.message);
+                        }
+                    )
+            );
+        } else {
+            // Si hay errores, mostrar toast
+            for (let value of this.selectedItem.errorMessagesInForm.values()) {
+                toast.error(value);
+            }
+        }
     };
 
     /**
@@ -476,7 +492,6 @@ export default class ViewController extends React.Component {
                 </div>
 
             </div>
-
 
         // Añadir modal y actualizar estado
         this.addModal("i18n_common_confirm", modalContent);

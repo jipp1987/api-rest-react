@@ -14,6 +14,9 @@ export default class BaseEntity {
 
     // Asignar un uuid para los keys de tablas y otros componentes
     this._uuid = uuidv4();
+
+    // Mapa de errores por atributo. Necesario para la validación en los formularios.
+    this._errorMessagesInForm = new Map();
   }
 
   // GETTERS Y SETTERS
@@ -23,6 +26,14 @@ export default class BaseEntity {
 
   set uuid(uuid) {
     this._uuid = uuid
+  }
+
+  get errorMessagesInForm() {
+    return this._errorMessagesInForm;
+  }
+
+  set errorMessagesInForm(errorMessagesInForm) {
+    this._errorMessagesInForm = errorMessagesInForm
   }
 
   // FUNCIONES
