@@ -68,7 +68,7 @@ export default class TipoClienteView extends ViewController {
      */
     tipo_cliente_is_valid = () => {
         // Si error es null al final, ha ido todo bien y el código es válido
-        var error = null;
+        var errorMsg = null;
 
         // Eliminar el error del mapa de errores primero, si se produce algún error almacenará para prevenir el submit del formulario
         this.selectedItem.errorMessagesInForm.delete('codigo');
@@ -88,16 +88,16 @@ export default class TipoClienteView extends ViewController {
 
                             if (count !== undefined && count !== null && count > 0) {
                                 // Avisar al usuario
-                                error = <FormattedMessage id="i18n_error_codeAlreadyExists" values={{ 0: this.selectedItem.codigo }} />;
-                                console.log(error);
+                                errorMsg = <FormattedMessage id="i18n_error_codeAlreadyExists" values={{ 0: this.selectedItem.codigo }} />;
 
-                                toast.error(error);
-                                this.selectedItem.errorMessagesInForm.set("codigo", error);
+                                toast.error(errorMsg);
+                                this.selectedItem.errorMessagesInForm.set("codigo", errorMsg);
                             }
                         } else {
-                            error = result['response_object'];
-                            toast.error(error);
-                            this.selectedItem.errorMessagesInForm.set("codigo", error);
+                            errorMsg = result['response_object'];
+                            
+                            toast.error(errorMsg);
+                            this.selectedItem.errorMessagesInForm.set("codigo", errorMsg);
                         }
                     },
 
@@ -105,9 +105,7 @@ export default class TipoClienteView extends ViewController {
                     // un bloque catch() para que no interceptemos errores
                     // reales en los componentes.
                     (error) => {
-                        error = error.message;
                         toast.error(error);
-                        this.selectedItem.errorMessagesInForm.set("codigo", error);
                     }
                 )
         }
