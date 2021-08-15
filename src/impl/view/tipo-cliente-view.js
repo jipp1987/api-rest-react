@@ -88,7 +88,9 @@ export default class TipoClienteView extends ViewController {
 
                             if (count !== undefined && count !== null && count > 0) {
                                 // Avisar al usuario
-                                error = "$$Ya existe un registro con el código " + this.selectedItem.codigo;
+                                error = <FormattedMessage id="i18n_error_codeAlreadyExists" values={{ 0: this.selectedItem.codigo }} />;
+                                console.log(error);
+
                                 toast.error(error);
                                 this.selectedItem.errorMessagesInForm.set("codigo", error);
                             }
@@ -101,7 +103,7 @@ export default class TipoClienteView extends ViewController {
 
                     // Nota: es importante manejar errores aquí y no en 
                     // un bloque catch() para que no interceptemos errores
-                    // de errores reales en los componentes.
+                    // reales en los componentes.
                     (error) => {
                         error = error.message;
                         toast.error(error);
