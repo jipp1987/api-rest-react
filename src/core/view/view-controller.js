@@ -18,7 +18,7 @@ import toast from 'react-hot-toast';
 import "./../components/styles/buttons.css";
 
 /**
- * Controlador de mantenimiento de clientes.
+ * @class Controlador de mantenimiento de clientes.
  */
 export default class ViewController extends React.Component {
 
@@ -30,7 +30,11 @@ export default class ViewController extends React.Component {
         parentContainer: PropTypes.string.isRequired
     };
 
-    // CONSTRUCTOR
+    /**
+     * Crea una instancia del controlador de vista.
+     * 
+     * @param {props} 
+     */
     constructor(props) {
         super(props);
 
@@ -112,10 +116,56 @@ export default class ViewController extends React.Component {
     }
 
     /**
-     * Paso final para obtener las request options.
+    * Convierte un array json a un array de entidades del modelo de datos.
+    * 
+    * @param {json} json_result 
+    * @returns Lista de entidades según el modelo de datos correspondiente a la vista. 
+    */
+    convertFromJsonToEntityList(json_result) {
+        var result = [];
+
+        // Convertir entidad a entidad.
+        if (json_result !== null && json_result.length > 0) {
+            for (let i = 0; i < json_result.length; i++) {
+                result.push(this.entity_class.from(json_result[i]));
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Envía una petición a la API. 
      * 
-     * @param {*} request_body 
-     * @returns Mapa de requestoptions para peticiones a la API.
+     * @param {string} url Dirección de la API. Si null, se utiliza la url asociada al controlador. 
+     * @param {RequestOptions} requestOptions Objecto de opciones para la petición.
+     * @returns {Promise} Evento asíncrono que a su vez devuelve el resultado de la operación 
+     * (que es un objeto RequestResponse con atributos success, status_code y response_object). Dado que devuelve una promesa, la función que llame a ésta 
+     * debe emplear then para captura el return interno, es decir, el resultado.
+     */
+    makeRequestToAPI(url, requestOptions) {
+        return trackPromise(
+            fetch(url !== undefined && url !== null ? url : this.url, requestOptions)
+                .then(res => res.json())
+                .then(
+                    (result) => {
+                        // Result es un objeto RequestResponse con atributos success, status_code y response_object
+                        return result;
+                    },
+
+                    // TODO Si se produce un error en la consulta con la API, habrá que hacer algo aquí, redirigir a otra página o algo así
+                    (error) => {
+                        toast.error(error.message);
+                    }
+                )
+        );
+    }
+
+    /**
+     * Paso final para obtener las request options. Devuelve un object notation, un diccionario, con clave-valor para hacer la request a la API. 
+     * 
+     * @param {dict} request_body Es un diccionario con el cuerpo de la request que se va a enviar a la API. 
+     * @returns {dict} Diccionario de requestOptions para peticiones a la API.
      */
     getRequestOptionsFinal(request_body) {
         // Objeto para envío de solicitud a API.
@@ -141,7 +191,7 @@ export default class ViewController extends React.Component {
     /**
      * Devuelve las opciones para la request a la api.
      * 
-     * @returns 
+     * @returns {dict} Diccionario de requestOptions para peticiones a la API.
      */
     getRequestOptions(controllerState = null, fields = null, joins = null, filters = null, group_by = null, order = null, is_count = false) {
         let request_body;
@@ -206,48 +256,72 @@ export default class ViewController extends React.Component {
     }
 
     /**
-     * Convierte un array json a un array de entidades del modelo de datos.
-     * 
-     * @param {*} json_result 
-     * @returns Lista de entidades según el modelo de datos correspondiente a la vista. 
+     * Hace una consulta a la API para traer datos para el listado.
      */
-    convertFromJsonToEntityList(json_result) {
-        var result = [];
-
-        // Convertir entidad a entidad.
-        if (json_result !== null && json_result.length > 0) {
-            for (let i = 0; i < json_result.length; i++) {
-                result.push(this.entity_class.from(json_result[i]));
-            }
-        }
-
-        return result;
+     fetchData = () => {
+        this.makeRequestToAPI(null, this.getRequestOptions(ViewStates.LIST)).then((result) => {
+            this.setState({
+                items: this.convertFromJsonToEntityList(result['response_object'])
+            });
+        });
     }
 
     /**
-     * Traer datos de la api.
+     * Maneja el evento de envío del objeto a la api.
+     * 
+     * @param {*} e 
      */
-    fetchData = () => {
+     saveChanges(e) {
+        e.preventDefault();
 
-        trackPromise(
-            fetch(this.url, this.getRequestOptions(ViewStates.LIST))
-                .then(res => res.json())
-                .then(
-                    (result) => {
-                        this.setState({
-                            items: this.convertFromJsonToEntityList(result['response_object'])
-                        });
-                    },
+        // Comprobar primero que no hay errores en el formulario a través del campo del elemento seleccionado
+        if (this.selectedItem.errorMessagesInForm.size === 0) {
+            this.makeRequestToAPI(null, this.getRequestOptions()).then((result) => {
+                // Si el resultado ha sido correcto es un código 200
+                if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
+                    this.setState({ viewState: ViewStates.DETAIL });
+                    toast.success(result['response_object']);
+                } else {
+                    toast.error(result['response_object']);
+                }
+            });
+        } else {
+            // Si hay errores, mostrar toast
+            for (let value of this.selectedItem.errorMessagesInForm.values()) {
+                toast.error(value);
+            }
+        }
+    };
 
-                    // Nota: es importante manejar errores aquí y no en 
-                    // un bloque catch() para que no interceptemos errores
-                    // de errores reales en los componentes.
-                    (error) => {
-                        toast.error(error.message);
-                    }
-                )
-        );
+    /**
+     * Función de de borrado de elementos.
+     * 
+     * @param {entityClass} Elemento a eliminar. 
+     */
+     deleteItem = (elementToDelete) => {
+        // A la api le tengo que pasar el objeto como un diccionario
+        const item_dict = elementToDelete.toJsonDict();
 
+        // Cuerpo de la solicitud a la API
+        const request_body = {
+            username: null,
+            password: null,
+            action: 3,
+            request_object: item_dict
+        };
+
+        const request_options = this.getRequestOptionsFinal(request_body);
+
+        this.makeRequestToAPI(null, request_options).then((result) => {
+            // Si el resultado ha sido correcto es un código 200
+            if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
+                toast.success(result['response_object']);
+                // Cargar datos
+                this.fetchData();
+            } else {
+                toast.error(result['response_object']);
+            }
+        });
     }
 
     componentDidMount() {
@@ -257,7 +331,7 @@ export default class ViewController extends React.Component {
     /**
      * Añade una cláusula order_by al orden del controlador, o bien modifica una existente; depende del flag de la cabecera pasada como parámetro.
      * 
-     * @param {*} header 
+     * @param {HeaderHelper} header 
      */
     add_order_by_header(header) {
         // Clono con slice la lista de order bys según el estado.
@@ -337,7 +411,7 @@ export default class ViewController extends React.Component {
     /**
     * Método de renderizado de toolbar de la tabla.
     * 
-    * @returns Toolbar. 
+    * @returns {toolbar}. 
     */
     renderToolbarList() {
         return (
@@ -360,47 +434,6 @@ export default class ViewController extends React.Component {
             viewState: ViewStates.LIST
         });
     }
-
-    /**
-     * Maneja el evento de envío del objeto a la api.
-     * 
-     * @param {*} e 
-     */
-    saveChanges(e) {
-        e.preventDefault();
-
-        // Comprobar primero que no hay errores en el formulario a través del campo del elemento seleccionado
-        if (this.selectedItem.errorMessagesInForm.size === 0) {
-            trackPromise(
-                fetch(this.url, this.getRequestOptions())
-                    .then(res => res.json())
-                    .then(
-                        (result) => {
-                            // Si el resultado ha sido correcto es un código 200
-                            if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
-                                this.setState({ viewState: ViewStates.DETAIL });
-                                toast.success(result['response_object']);
-                            } else {
-                                toast.error(result['response_object']);
-                            }
-                        },
-
-                        // Nota: es importante manejar errores aquí y no en 
-                        // un bloque catch() para que no interceptemos errores
-                        // de errores reales en los componentes.
-                        (error) => {
-                            // TODO Manejar este error
-                            toast.error(error.message);
-                        }
-                    )
-            );
-        } else {
-            // Si hay errores, mostrar toast
-            for (let value of this.selectedItem.errorMessagesInForm.values()) {
-                toast.error(value);
-            }
-        }
-    };
 
     /**
     * Método de renderizado de toolbar de la tabla.
@@ -496,51 +529,6 @@ export default class ViewController extends React.Component {
         // Añadir modal y actualizar estado
         this.addModal("i18n_common_confirm", modalContent);
     }
-
-    /**
-     * Función de de borrado de elementos.
-     * 
-     * @param {entityClass} Elemento a eliminar. 
-     */
-    deleteItem = (elementToDelete) => {
-        // A la api le tengo que pasar el objeto como un diccionario
-        const item_dict = elementToDelete.toJsonDict();
-
-        // Cuerpo de la solicitud a la API
-        const request_body = {
-            username: null,
-            password: null,
-            action: 3,
-            request_object: item_dict
-        };
-
-        const request_options = this.getRequestOptionsFinal(request_body);
-
-        trackPromise(
-            fetch(this.url, request_options)
-                .then(res => res.json())
-                .then(
-                    (result) => {
-                        // Si el resultado ha sido correcto es un código 200
-                        if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
-                            toast.success(result['response_object']);
-                            // Cargar datos
-                            this.fetchData();
-                        } else {
-                            toast.error(result['response_object']);
-                        }
-                    },
-
-                    // Nota: es importante manejar errores aquí y no en 
-                    // un bloque catch() para que no interceptemos errores
-                    // de errores reales en los componentes.
-                    (error) => {
-                        toast.error(error.message);
-                    }
-                )
-        );
-    }
-
 
     /**
      * Renderizado de la vista de tabla o listado.

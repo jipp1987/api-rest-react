@@ -5,11 +5,15 @@ import { properties } from './../../properties';
 import Usuario from '../model/usuario';
 
 /**
- * Controlador de mantenimiento de clientes.
+ * @class Controlador de mantenimiento de clientes.
  */
  export default class UsuarioView extends ViewController {
 
-    // CONSTRUCTOR
+    /**
+     * Crea una instancia del controlador de vista.
+     * 
+     * @param {props} 
+     */
     constructor(props) {
         super(props);
 
