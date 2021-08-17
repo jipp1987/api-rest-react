@@ -76,7 +76,7 @@ export default class TipoClienteView extends ViewController {
             const filters = [new FilterClause("codigo", FilterTypes.EQUALS, this.selectedItem.codigo)];
 
             // Consultar con la API si ya existe un registro en la tabla con el código introducido
-            this.makeRequestToAPI(null, this.getRequestOptions(ViewStates.LIST, null, null, filters, null, null, true)).then((result) => {
+            this.makeRequestToAPI(null, this.getRequestOptions(ViewStates.VALIDATE, null, null, filters, null, null, true)).then((result) => {
                 // Si error es null al final, ha ido todo bien y el código es válido
                 var errorMsg = null;
 

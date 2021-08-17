@@ -1,10 +1,22 @@
 /**
- * Tipos de operadores.
+ * Estados y acciones de los controladores de vista.
  */
 const ViewStates = {
     LIST: "LIST",
+    VALIDATE: "VALIDATE",
     DETAIL: "DETAIL",
     EDIT: "EDIT",
+    DELETE: "DELETE",
+}
+
+/**
+ * Códigos de acción para la API.
+ */
+const APIActionCodes = {
+    CREATE: 1,
+    EDIT: 2,
+    DELETE: 3,
+    SELECT: 4,
 }
 
 /**
@@ -56,11 +68,11 @@ function number_format(number, decimals, dec_point, thousands_sep) {
 function focusNextElement(currentElementId) {
     // Busco el elemento actual en el formulario.
     var currentElement = document.getElementById(currentElementId);
-    
+
     // Selector de elementos sobre los que se puede hacer foco.
     var focussableElements = 'a:not([disabled]), button:not([disabled]), input[type=text]:not([disabled]), [tabindex]:not([disabled]):not([tabindex="-1"])';
     var universe = document.querySelectorAll(focussableElements);
-    var list = Array.prototype.filter.call(universe, function(item) {return item.tabIndex >= "0"});
+    var list = Array.prototype.filter.call(universe, function (item) { return item.tabIndex >= "0" });
 
     var index = list.indexOf(currentElement);
     // Obtengo el siguiente elemento partiendo del actual (o bien el primero si fuese el último).
@@ -80,7 +92,7 @@ function focusNextElement(currentElementId) {
 /**
  * Modelado para modales. 
  */
-class ModalModel {
+class ModalHelper {
 
     // CONTRUCTOR
     constructor(title, id, parentContainer, content) {
@@ -94,4 +106,4 @@ class ModalModel {
 
 
 // Exportar como módulo.
-module.exports = { ViewStates, resolve_property_by_string, number_format, focusNextElement, ModalModel }
+module.exports = { ViewStates, APIActionCodes, resolve_property_by_string, number_format, focusNextElement, ModalHelper }

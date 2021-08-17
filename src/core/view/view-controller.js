@@ -2,7 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { v4 as uuidv4 } from 'uuid';
 
-import { ViewStates, ModalModel } from "../utils/helper-utils";
+import { ViewStates, ModalHelper, APIActionCodes } from "../utils/helper-utils";
 import { OrderByTypes, OrderByClause } from '../utils/dao-utils';
 
 import DataTable from '../components/data-table.js';
@@ -87,9 +87,14 @@ export default class ViewController extends React.Component {
         this.headers = null;
 
         /**
-         * Elemento seleccionado para edición, detalle y eliminación.
+         * Elemento seleccionado para edición y detalle.
          */
         this.selectedItem = null;
+
+        /**
+         * Elemento seleccionado para eliminación.
+         */
+        this.itemToDelete = null;
 
         // Establecer estado para atributos de lectura/escritura.
         this.state = {
@@ -162,12 +167,77 @@ export default class ViewController extends React.Component {
     }
 
     /**
-     * Paso final para obtener las request options. Devuelve un object notation, un diccionario, con clave-valor para hacer la request a la API. 
+     * Devuelve las opciones para la request a la api.
      * 
-     * @param {dict} request_body Es un diccionario con el cuerpo de la request que se va a enviar a la API. 
      * @returns {dict} Diccionario de requestOptions para peticiones a la API.
      */
-    getRequestOptionsFinal(request_body) {
+    getRequestOptions(controllerState = null, fields = null, joins = null, filters = null, group_by = null, order = null, is_count = false) {
+        let request_body;
+
+        // En función del estado del viewcontroller, el body de la petición será diferente.
+        var { viewState } = this.state;
+
+        // Si se ha pasado un estado como parámetro significa que queremos forzar una consulta en concreto
+        if (controllerState !== undefined && controllerState !== null) {
+            viewState = controllerState;
+        }
+
+        switch (viewState) {
+            case ViewStates.EDIT:
+                // La acción a realizar será 1 para creación (el objeto no tiene id) o 2 para edición (el objeto tiene id)
+                const action = this.selectedItem[this.id_field_name] !== undefined && this.selectedItem[this.id_field_name] !== null ? APIActionCodes.EDIT : APIActionCodes.CREATE;
+
+                request_body = {
+                    username: null,
+                    password: null,
+                    action: action,
+                    request_object: this.selectedItem.toJsonDict()
+                };
+
+                break;
+
+            case ViewStates.DETAIL:
+                request_body = null;
+
+                break;
+
+            case ViewStates.DELETE:
+                request_body = {
+                    username: null,
+                    password: null,
+                    action: APIActionCodes.DELETE,
+                    request_object: this.itemToDelete.toJsonDict()
+                };
+
+                break;
+
+            case ViewStates.LIST:
+            case ViewStates.VALIDATE:
+            default:
+                // Cargar parámetros de consulta: si vienen como argumentos se utilizan ésos, sino los del propio controller.
+                const fields_param = fields !== undefined && fields !== null ? fields : this.fields;
+                const joins_param = joins !== undefined && joins !== null ? joins : this.joins;
+                const filters_param = filters !== undefined && filters !== null ? filters : this.filters;
+                const group_by_param = group_by !== undefined && group_by !== null ? group_by : this.group_by;
+                const order_param = order !== undefined && order !== null ? order : this.order;
+
+                request_body = {
+                    username: null,
+                    password: null,
+                    action: APIActionCodes.SELECT,
+                    request_object: {
+                        fields: fields_param,
+                        joins: joins_param,
+                        filters: filters_param,
+                        group_by: group_by_param,
+                        order: order_param,
+                        is_count: is_count
+                    }
+                };
+
+                break;
+        }
+
         // Objeto para envío de solicitud a API.
         const requestOptions = {
             method: 'POST',
@@ -189,76 +259,9 @@ export default class ViewController extends React.Component {
     }
 
     /**
-     * Devuelve las opciones para la request a la api.
-     * 
-     * @returns {dict} Diccionario de requestOptions para peticiones a la API.
-     */
-    getRequestOptions(controllerState = null, fields = null, joins = null, filters = null, group_by = null, order = null, is_count = false) {
-        let request_body;
-
-        // En función del estado del viewcontroller, el body de la petición será diferente.
-        var { viewState } = this.state;
-
-        // Si se ha pasado un estado como parámetro significa que queremos forzar una consulta en concreto
-        if (controllerState !== undefined && controllerState !== null) {
-            viewState = controllerState;
-        }
-
-        switch (viewState) {
-            case ViewStates.EDIT:
-                // La acción a realizar será 1 para creación (el objeto no tiene id) o 2 para edición (el objeto tiene id)
-                const action = this.selectedItem[this.id_field_name] !== undefined && this.selectedItem[this.id_field_name] !== null ? 2 : 1;
-                // A la api le tengo que pasar el objeto como un diccionario
-                const item_dict = this.selectedItem.toJsonDict();
-
-                request_body = {
-                    username: null,
-                    password: null,
-                    action: action,
-                    request_object: item_dict
-                };
-
-                break;
-
-            case ViewStates.DETAIL:
-                request_body = null;
-                break;
-
-            case ViewStates.LIST:
-            default:
-                // Cargar parámetros de consulta: si vienen como argumentos se utilizan ésos, sino los del propio controller.
-                const fields_param = fields !== undefined && fields !== null ? fields : this.fields;
-                const joins_param = joins !== undefined && joins !== null ? joins : this.joins;
-                const filters_param = filters !== undefined && filters !== null ? filters : this.filters;
-                const group_by_param = group_by !== undefined && group_by !== null ? group_by : this.group_by;
-                const order_param = order !== undefined && order !== null ? order : this.order;
-
-                request_body = {
-                    username: null,
-                    password: null,
-                    action: 4,
-                    request_object: {
-                        fields: fields_param,
-                        joins: joins_param,
-                        filters: filters_param,
-                        group_by: group_by_param,
-                        order: order_param,
-                        is_count: is_count
-                    }
-                };
-
-                break;
-        }
-
-
-        // Objeto para envío de solicitud a API.
-        return this.getRequestOptionsFinal(request_body);
-    }
-
-    /**
      * Hace una consulta a la API para traer datos para el listado.
      */
-     fetchData = () => {
+    fetchData = () => {
         this.makeRequestToAPI(null, this.getRequestOptions(ViewStates.LIST)).then((result) => {
             this.setState({
                 items: this.convertFromJsonToEntityList(result['response_object'])
@@ -271,7 +274,7 @@ export default class ViewController extends React.Component {
      * 
      * @param {*} e 
      */
-     saveChanges(e) {
+    saveChanges(e) {
         e.preventDefault();
 
         // Comprobar primero que no hay errores en el formulario a través del campo del elemento seleccionado
@@ -298,24 +301,15 @@ export default class ViewController extends React.Component {
      * 
      * @param {entityClass} Elemento a eliminar. 
      */
-     deleteItem = (elementToDelete) => {
-        // A la api le tengo que pasar el objeto como un diccionario
-        const item_dict = elementToDelete.toJsonDict();
+    deleteItem = (elementToDelete) => {
+        // Asigno a itemToDelete el elemento pasado como parámetro.
+        this.itemToDelete = elementToDelete;
 
-        // Cuerpo de la solicitud a la API
-        const request_body = {
-            username: null,
-            password: null,
-            action: 3,
-            request_object: item_dict
-        };
-
-        const request_options = this.getRequestOptionsFinal(request_body);
-
-        this.makeRequestToAPI(null, request_options).then((result) => {
+        this.makeRequestToAPI(null, this.getRequestOptions(ViewStates.DELETE)).then((result) => {
             // Si el resultado ha sido correcto es un código 200
             if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
                 toast.success(result['response_object']);
+                this.itemToDelete = null;
                 // Cargar datos
                 this.fetchData();
             } else {
@@ -467,7 +461,7 @@ export default class ViewController extends React.Component {
         const parentContainer = modalList.length === 0 ? this.props.parentContainer : modalList[modalList.length - 1].id;
 
         // Añadir a la lista de modales
-        modalList.push(new ModalModel(title, modalUuid, parentContainer, content));
+        modalList.push(new ModalHelper(title, modalUuid, parentContainer, content));
 
         // Actualizo el estado del controlador
         this.setState({ modalList: modalList });
