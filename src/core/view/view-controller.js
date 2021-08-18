@@ -169,9 +169,20 @@ export default class ViewController extends React.Component {
     /**
      * Devuelve las opciones para la request a la api.
      * 
+     * @param {ViewStates} controllerState Estado del controlador. Si null, se utilizará el que tenga el controlador en un momento dado. 
+     * Se utiliza para poder hacer una acción diferente a la que corresponda al estado del controlador, es decir: ViewStates.LIST -> Select, ViewStates.EDIT -> Edición, 
+     * ViewStates.DETAIL -> Detalle (hace lo mismo que edit). También es útil para realizar un par de acciones más: ViewStates.DELETE y ViewStates.VALIDATE: los ViewControllers no 
+     * están de forma natural en estos estados, así que cuando se desea eliminar un elemento o hacer una consulta para algún tipo de validación hay que pasar estos dos estados según 
+     * corresponda.
+     * @param {List[FieldClause]} fields Listado de FieldClause para selects. Si null, se utilizará el propio atributo del ViewController.
+     * @param {List[JoinClause]} joins Listado de JoinClause para selects. Si null, se utilizará el propio atributo del ViewController.
+     * @param {List[FilterClause]} filters Listado de FilterClause para selects. Si null, se utilizará el propio atributo del ViewController.
+     * @param {List[GroupByClause]} group_by Listado de GroupByClause para selects. Si null, se utilizará el propio atributo del ViewController.
+     * @param {List[OrderByClause]} order Listado de OrderByClause para selects. Si null, se utilizará el propio atributo del ViewController.
+     * @param {SelectActions} select_action Acciones especiales para select. Si null, será una select normal. Sólo aplica para estados LIST y VALIDATE. 
      * @returns {dict} Diccionario de requestOptions para peticiones a la API.
      */
-    getRequestOptions(controllerState = null, fields = null, joins = null, filters = null, group_by = null, order = null, is_count = false) {
+    getRequestOptions(controllerState = null, fields = null, joins = null, filters = null, group_by = null, order = null, select_action = null) {
         let request_body;
 
         // En función del estado del viewcontroller, el body de la petición será diferente.
@@ -184,6 +195,7 @@ export default class ViewController extends React.Component {
 
         switch (viewState) {
             case ViewStates.EDIT:
+            case ViewStates.DETAIL:
                 // La acción a realizar será 1 para creación (el objeto no tiene id) o 2 para edición (el objeto tiene id)
                 const action = this.selectedItem[this.id_field_name] !== undefined && this.selectedItem[this.id_field_name] !== null ? APIActionCodes.EDIT : APIActionCodes.CREATE;
 
@@ -191,13 +203,9 @@ export default class ViewController extends React.Component {
                     username: null,
                     password: null,
                     action: action,
+                    select_action: null,
                     request_object: this.selectedItem.toJsonDict()
                 };
-
-                break;
-
-            case ViewStates.DETAIL:
-                request_body = null;
 
                 break;
 
@@ -206,6 +214,7 @@ export default class ViewController extends React.Component {
                     username: null,
                     password: null,
                     action: APIActionCodes.DELETE,
+                    select_action: null,
                     request_object: this.itemToDelete.toJsonDict()
                 };
 
@@ -225,13 +234,13 @@ export default class ViewController extends React.Component {
                     username: null,
                     password: null,
                     action: APIActionCodes.SELECT,
+                    select_action: select_action,
                     request_object: {
                         fields: fields_param,
                         joins: joins_param,
                         filters: filters_param,
                         group_by: group_by_param,
-                        order: order_param,
-                        is_count: is_count
+                        order: order_param
                     }
                 };
 

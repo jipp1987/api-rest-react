@@ -7,7 +7,7 @@ import TipoCliente from '../model/tipo_cliente';
 import { FormattedMessage } from "react-intl";
 import React from 'react';
 
-import { ViewStates } from "../../core/utils/helper-utils";
+import { ViewStates, SelectActions } from "../../core/utils/helper-utils";
 
 import toast from 'react-hot-toast';
 
@@ -76,7 +76,7 @@ export default class TipoClienteView extends ViewController {
             const filters = [new FilterClause("codigo", FilterTypes.EQUALS, this.selectedItem.codigo)];
 
             // Consultar con la API si ya existe un registro en la tabla con el código introducido
-            this.makeRequestToAPI(null, this.getRequestOptions(ViewStates.VALIDATE, null, null, filters, null, null, true)).then((result) => {
+            this.makeRequestToAPI(null, this.getRequestOptions(ViewStates.VALIDATE, null, null, filters, null, null, SelectActions.COUNT)).then((result) => {
                 // Si error es null al final, ha ido todo bien y el código es válido
                 var errorMsg = null;
 
