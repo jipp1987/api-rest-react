@@ -10,7 +10,7 @@ import LoadingIndicator from '../components/loading-indicator';
 import Modal from "../components/modal";
 
 import { FormattedMessage } from "react-intl";
-import CoreController from './core_controller';
+import CoreController from './core-controller';
 
 import "./../components/styles/buttons.css";
 
