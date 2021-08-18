@@ -2,8 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { v4 as uuidv4 } from 'uuid';
 
-import { ViewStates, ModalHelper, APIActionCodes } from "../utils/helper-utils";
-import { OrderByTypes, OrderByClause } from '../utils/dao-utils';
+import { ViewStates, ModalHelper } from "../utils/helper-utils";
 
 import DataTable from '../components/data-table.js';
 import ImageButton from '../components/image-button';
@@ -11,16 +10,14 @@ import LoadingIndicator from '../components/loading-indicator';
 import Modal from "../components/modal";
 
 import { FormattedMessage } from "react-intl";
-import { trackPromise } from 'react-promise-tracker';
-import toast from 'react-hot-toast';
-
+import CoreController from './core_controller';
 
 import "./../components/styles/buttons.css";
 
 /**
- * @class Controlador de mantenimiento de clientes.
+ * @class Controlador de vista.
  */
-export default class ViewController extends React.Component {
+export default class ViewController extends CoreController {
 
     /**
      * Definición de tipos de propiedades. Si se le pasara un parámetro de un tipo no definido en este mapa, lanzaría excepción.
@@ -44,57 +41,12 @@ export default class ViewController extends React.Component {
         /**
          * Nombre del campo id.
          */
-        this.id_field_name = 'id';
+         this.id_field_name = 'id';
 
-        /**
-         * Dirección de la API.
-         */
-        this.url = '';
-
-        /**
-         * Límite de filas.
-         */
-        this.rowLimit = 50;
-
-        /**
-         * Campos para la SELECT.
-         */
-        this.fields = null;
-
-        /**
-         * Filtros activos.
-         */
-        this.filters = null;
-
-        /**
-         * OrderBys activos.
-         */
-        this.order = null;
-
-        /**
-         * Joins activos.
-         */
-        this.joins = null;
-
-        /**
-         * Group bys activos.
-         */
-        this.group_by = null;
-
-        /**
-         * Array de objetos HeaderHelper para modelar las cabeceras.
-         */
-        this.headers = null;
-
-        /**
-         * Elemento seleccionado para edición y detalle.
-         */
-        this.selectedItem = null;
-
-        /**
-         * Elemento seleccionado para eliminación.
-         */
-        this.itemToDelete = null;
+         /**
+          * Dirección de la API.
+          */
+         this.url = '';
 
         // Establecer estado para atributos de lectura/escritura.
         this.state = {
@@ -121,335 +73,10 @@ export default class ViewController extends React.Component {
     }
 
     /**
-    * Convierte un array json a un array de entidades del modelo de datos.
-    * 
-    * @param {json} json_result 
-    * @returns Lista de entidades según el modelo de datos correspondiente a la vista. 
-    */
-    convertFromJsonToEntityList(json_result) {
-        var result = [];
-
-        // Convertir entidad a entidad.
-        if (json_result !== null && json_result.length > 0) {
-            for (let i = 0; i < json_result.length; i++) {
-                result.push(this.entity_class.from(json_result[i]));
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Envía una petición a la API. 
-     * 
-     * @param {string} url Dirección de la API. Si null, se utiliza la url asociada al controlador. 
-     * @param {RequestOptions} requestOptions Objecto de opciones para la petición.
-     * @returns {Promise} Evento asíncrono que a su vez devuelve el resultado de la operación 
-     * (que es un objeto RequestResponse con atributos success, status_code y response_object). Dado que devuelve una promesa, la función que llame a ésta 
-     * debe emplear then para captura el return interno, es decir, el resultado.
+     * Sobrescritura de componentDidMount de React.component, para que al cargar el componente en la vista por primera vez traiga los datos desde la API.
      */
-    makeRequestToAPI(url, requestOptions) {
-        return trackPromise(
-            fetch(url !== undefined && url !== null ? url : this.url, requestOptions)
-                .then(res => res.json())
-                .then(
-                    (result) => {
-                        // Result es un objeto RequestResponse con atributos success, status_code y response_object
-                        return result;
-                    },
-
-                    // TODO Si se produce un error en la consulta con la API, habrá que hacer algo aquí, redirigir a otra página o algo así
-                    (error) => {
-                        toast.error(error.message);
-                    }
-                )
-        );
-    }
-
-    /**
-     * Devuelve las opciones para la request a la api.
-     * 
-     * @param {ViewStates} controllerState Estado del controlador. Si null, se utilizará el que tenga el controlador en un momento dado. 
-     * Se utiliza para poder hacer una acción diferente a la que corresponda al estado del controlador, es decir: ViewStates.LIST -> Select, ViewStates.EDIT -> Edición, 
-     * ViewStates.DETAIL -> Detalle (hace lo mismo que edit). También es útil para realizar un par de acciones más: ViewStates.DELETE y ViewStates.VALIDATE: los ViewControllers no 
-     * están de forma natural en estos estados, así que cuando se desea eliminar un elemento o hacer una consulta para algún tipo de validación hay que pasar estos dos estados según 
-     * corresponda.
-     * @param {List[FieldClause]} fields Listado de FieldClause para selects. Si null, se utilizará el propio atributo del ViewController.
-     * @param {List[JoinClause]} joins Listado de JoinClause para selects. Si null, se utilizará el propio atributo del ViewController.
-     * @param {List[FilterClause]} filters Listado de FilterClause para selects. Si null, se utilizará el propio atributo del ViewController.
-     * @param {List[GroupByClause]} group_by Listado de GroupByClause para selects. Si null, se utilizará el propio atributo del ViewController.
-     * @param {List[OrderByClause]} order Listado de OrderByClause para selects. Si null, se utilizará el propio atributo del ViewController.
-     * @param {SelectActions} select_action Acciones especiales para select. Si null, será una select normal. Sólo aplica para estados LIST y VALIDATE. 
-     * @returns {dict} Diccionario de requestOptions para peticiones a la API.
-     */
-    getRequestOptions(controllerState = null, fields = null, joins = null, filters = null, group_by = null, order = null, select_action = null) {
-        let request_body;
-
-        // En función del estado del viewcontroller, el body de la petición será diferente.
-        var { viewState } = this.state;
-
-        // Si se ha pasado un estado como parámetro significa que queremos forzar una consulta en concreto
-        if (controllerState !== undefined && controllerState !== null) {
-            viewState = controllerState;
-        }
-
-        switch (viewState) {
-            case ViewStates.EDIT:
-            case ViewStates.DETAIL:
-                // La acción a realizar será 1 para creación (el objeto no tiene id) o 2 para edición (el objeto tiene id)
-                const action = this.selectedItem[this.id_field_name] !== undefined && this.selectedItem[this.id_field_name] !== null ? APIActionCodes.EDIT : APIActionCodes.CREATE;
-
-                request_body = {
-                    username: null,
-                    password: null,
-                    action: action,
-                    select_action: null,
-                    request_object: this.selectedItem.toJsonDict()
-                };
-
-                break;
-
-            case ViewStates.DELETE:
-                request_body = {
-                    username: null,
-                    password: null,
-                    action: APIActionCodes.DELETE,
-                    select_action: null,
-                    request_object: this.itemToDelete.toJsonDict()
-                };
-
-                break;
-
-            case ViewStates.LIST:
-            case ViewStates.VALIDATE:
-            default:
-                // Cargar parámetros de consulta: si vienen como argumentos se utilizan ésos, sino los del propio controller.
-                const fields_param = fields !== undefined && fields !== null ? fields : this.fields;
-                const joins_param = joins !== undefined && joins !== null ? joins : this.joins;
-                const filters_param = filters !== undefined && filters !== null ? filters : this.filters;
-                const group_by_param = group_by !== undefined && group_by !== null ? group_by : this.group_by;
-                const order_param = order !== undefined && order !== null ? order : this.order;
-
-                request_body = {
-                    username: null,
-                    password: null,
-                    action: APIActionCodes.SELECT,
-                    select_action: select_action,
-                    request_object: {
-                        fields: fields_param,
-                        joins: joins_param,
-                        filters: filters_param,
-                        group_by: group_by_param,
-                        order: order_param
-                    }
-                };
-
-                break;
-        }
-
-        // Objeto para envío de solicitud a API.
-        const requestOptions = {
-            method: 'POST',
-            mode: 'cors',
-            cache: 'default',
-            headers: {
-                'Accept': 'application/json',
-                'Content-Type': 'application/json; charset=utf-8',
-                "Access-Control-Allow-Origin": "*"
-            },
-
-            body: JSON.stringify(
-                request_body
-            )
-
-        };
-
-        return requestOptions;
-    }
-
-    /**
-     * Hace una consulta a la API para traer datos para el listado.
-     */
-    fetchData = () => {
-        this.makeRequestToAPI(null, this.getRequestOptions(ViewStates.LIST)).then((result) => {
-            this.setState({
-                items: this.convertFromJsonToEntityList(result['response_object'])
-            });
-        });
-    }
-
-    /**
-     * Maneja el evento de envío del objeto a la api.
-     * 
-     * @param {*} e 
-     */
-    saveChanges(e) {
-        e.preventDefault();
-
-        // Comprobar primero que no hay errores en el formulario a través del campo del elemento seleccionado
-        if (this.selectedItem.errorMessagesInForm.size === 0) {
-            this.makeRequestToAPI(null, this.getRequestOptions()).then((result) => {
-                // Si el resultado ha sido correcto es un código 200
-                if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
-                    this.setState({ viewState: ViewStates.DETAIL });
-                    toast.success(result['response_object']);
-                } else {
-                    toast.error(result['response_object']);
-                }
-            });
-        } else {
-            // Si hay errores, mostrar toast
-            for (let value of this.selectedItem.errorMessagesInForm.values()) {
-                toast.error(value);
-            }
-        }
-    };
-
-    /**
-     * Función de de borrado de elementos.
-     * 
-     * @param {entityClass} Elemento a eliminar. 
-     */
-    deleteItem = (elementToDelete) => {
-        // Asigno a itemToDelete el elemento pasado como parámetro.
-        this.itemToDelete = elementToDelete;
-
-        this.makeRequestToAPI(null, this.getRequestOptions(ViewStates.DELETE)).then((result) => {
-            // Si el resultado ha sido correcto es un código 200
-            if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
-                toast.success(result['response_object']);
-                this.itemToDelete = null;
-                // Cargar datos
-                this.fetchData();
-            } else {
-                toast.error(result['response_object']);
-            }
-        });
-    }
-
     componentDidMount() {
         this.fetchData();
-    }
-
-    /**
-     * Añade una cláusula order_by al orden del controlador, o bien modifica una existente; depende del flag de la cabecera pasada como parámetro.
-     * 
-     * @param {HeaderHelper} header 
-     */
-    add_order_by_header(header) {
-        // Clono con slice la lista de order bys según el estado.
-        const order_list = this.order == null ? [] : this.order.slice();
-
-        // Busco la cláusula order_by cuyo campo se corresponda con el nombre de la cabecera, la convierto a otro estado siguiendo un
-        // semáforo: si no existe pasa a ASC, si ASC pasa a DESC, y si DESC se elimina.
-        var index = null;
-        var exists = null;
-        for (let i = 0; i < order_list.length; i++) {
-            if (order_list[i].field_name === header.field_name) {
-                index = i;
-                break;
-            }
-        }
-
-        // Si existe, cambiar el tipo de la cláusula según el flag order_state. También cambiar el estado de dicho flag para visualizar el cambio en la propia cabecera.
-        if (index != null) {
-            exists = order_list[index];
-
-            if (header.order_state === 'up') {
-                exists.order_by_type = OrderByTypes.DESC;
-                header.order_state = 'down';
-            } else {
-                // Elimino del array
-                order_list.splice(index, 1);
-                header.order_state = null;
-            }
-        } else {
-            // Si no existe, añadir a la lista de order_bys una nueva cláusula con ASC
-            order_list.push(new OrderByClause(header.field_name, OrderByTypes.ASC));
-            header.order_state = 'up';
-        }
-
-        // Modifico las cabeceras del controlador también
-        for (let i = 0; i < this.headers.length; i++) {
-            if (this.headers[i].field_name === header.field_name) {
-                this.headers[i] = header;
-                break;
-            }
-        }
-
-        // Reasigno el orden del viewcontroller
-        this.order = order_list;
-
-        // Llamo a fetchdata para rehacer el estado del viewcontroller y de la tabla interior.
-        this.fetchData();
-    }
-
-    /**
-     * Reestablece el orden por defecto.
-     */
-    restartOrder() {
-        // Reestablecer cabeceras
-        // Modifico las cabeceras del controlador también
-        for (let i = 0; i < this.headers.length; i++) {
-            this.headers[i].order_state = null;
-        }
-
-        // Traer datos de nuevo quitando el orden
-        this.order = [];
-        this.fetchData();
-    }
-
-    /**
-     * Navega a la vista de creación.
-     */
-    goToCreateView() {
-        // Instanciar nuevo elemento seleccionado según la clase asociada al controlador.
-        this.selectedItem = new this.entity_class();
-
-        this.setState({
-            viewState: ViewStates.EDIT
-        });
-    }
-
-    /**
-    * Método de renderizado de toolbar de la tabla.
-    * 
-    * @returns {toolbar}. 
-    */
-    renderToolbarList() {
-        return (
-            <div className='toolbar'>
-                <ImageButton title='i18n_reset_order_button' className='restart-button' onClick={() => this.restartOrder()} />
-                <ImageButton title='i18n_add_button' className='add-button' onClick={() => this.goToCreateView()} />
-            </div>
-        );
-    }
-
-    /**
-     * Vuelve a la vista del listado.
-     */
-    goToList() {
-        // Cargar datos
-        this.fetchData();
-
-        // Cambiar estado.
-        this.setState({
-            viewState: ViewStates.LIST
-        });
-    }
-
-    /**
-    * Método de renderizado de toolbar de la tabla.
-    * 
-    * @returns Toolbar. 
-    */
-    renderToolbarEditDetail() {
-        return (
-            <div className='toolbar'>
-                <ImageButton title='i18n_back_button' className='back-button' onClick={(e) => { e.preventDefault(); this.goToList(); }} />
-                <ImageButton title='i18n_save_button' className='save-button' type='submit' />
-            </div>
-        );
     }
 
     /**
@@ -534,6 +161,59 @@ export default class ViewController extends React.Component {
     }
 
     /**
+     * Navega a la vista de creación.
+     */
+    goToCreateView() {
+        // Instanciar nuevo elemento seleccionado según la clase asociada al controlador.
+        this.selectedItem = new this.entity_class();
+
+        this.setState({
+            viewState: ViewStates.EDIT
+        });
+    }
+
+    /**
+    * Método de renderizado de toolbar de la tabla.
+    * 
+    * @returns {toolbar}. 
+    */
+    renderToolbarList() {
+        return (
+            <div className='toolbar'>
+                <ImageButton title='i18n_reset_order_button' className='restart-button' onClick={() => this.restartOrder()} />
+                <ImageButton title='i18n_add_button' className='add-button' onClick={() => this.goToCreateView()} />
+            </div>
+        );
+    }
+
+    /**
+     * Vuelve a la vista del listado.
+     */
+    goToList() {
+        // Cargar datos
+        this.fetchData();
+
+        // Cambiar estado.
+        this.setState({
+            viewState: ViewStates.LIST
+        });
+    }
+
+    /**
+    * Método de renderizado de toolbar de la tabla.
+    * 
+    * @returns Toolbar. 
+    */
+    renderToolbarEditDetail() {
+        return (
+            <div className='toolbar'>
+                <ImageButton title='i18n_back_button' className='back-button' onClick={(e) => { e.preventDefault(); this.goToList(); }} />
+                <ImageButton title='i18n_save_button' className='save-button' type='submit' />
+            </div>
+        );
+    }
+
+    /**
      * Renderizado de la vista de tabla o listado.
      * 
      * @returns Componente visual de tabla o listado. 
@@ -559,7 +239,7 @@ export default class ViewController extends React.Component {
     }
 
     /**
-     * Implementación de renderizado de formulario de edición y detalle. Pensado para implementar.
+     * Implementación de renderizado de formulario de edición y detalle. Está pensado para sobrescribir en cada implementación de ViewController.
      * 
      * @param {boolean} isInDetailMode Si true se mostrarán todos los campos deshabilitados.
      *  
@@ -572,7 +252,7 @@ export default class ViewController extends React.Component {
     /**
      * Devuelve true si el controlador de vista está en modo detalle.
      * 
-     * @returns bool
+     * @returns {boolean}
      */
     isInDetailMode() {
         const { viewState } = this.state;
@@ -582,7 +262,7 @@ export default class ViewController extends React.Component {
     /**
      * Renderizado de la vista de edición.
      * 
-     * @returns Componente visual de edición. 
+     * @returns {Component} Componente visual de edición. 
      */
     renderEditView() {
         const view_title = this.view_title;
@@ -612,7 +292,7 @@ export default class ViewController extends React.Component {
     /**
      * Implementación del renderizado.
      * 
-     * @returns Formulario del mantenimiento.
+     * @returns {Component} Formulario del mantenimiento.
      */
     render() {
         // La vista a renderizar depende del estado de este atributo.
