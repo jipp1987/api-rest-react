@@ -11,6 +11,7 @@ import './styles/inputs.css';
 export default class MyInput extends React.Component {
 
     static propTypes = {
+        viewController: PropTypes.object.isRequired,
         entity: PropTypes.object.isRequired,
         valueName: PropTypes.string.isRequired,
         label: PropTypes.object.isRequired,
@@ -19,7 +20,7 @@ export default class MyInput extends React.Component {
         minLength: PropTypes.number,
         isEditing: PropTypes.bool,
         isRequired: PropTypes.bool,
-        post_action: PropTypes.func
+        validate_code: PropTypes.bool
     };
 
     constructor(props) {
@@ -29,6 +30,13 @@ export default class MyInput extends React.Component {
         // Compruebo si ha llegado algún valor de la propia entidad, sino lo inicializo en string vacío. Si no lo hago se produce un error en javascript.
         var value = props.entity[props.valueName] !== null && props.entity[props.valueName] !== undefined ? props.entity[props.valueName] : "";
         var isRequired = props.isRequired !== undefined && props.isRequired !== null ? props.isRequired : false;
+
+        // Establecer un array de validadores vacío por defecto
+        this.validators = [];
+        // Si se han pasado validadores al input, añadirlos al listado para ejecutar primero en el evento onBlur.
+        if (props.validators !== undefined && props.validators !== null) {
+            this.validators.push(props.validators);
+        }
 
         this.state = {
             // Necesito almacenar el valor del input como tal en el estado para que lo mantenga ante los distintos cambios, de tal modo que el input esté controlado
@@ -45,7 +53,7 @@ export default class MyInput extends React.Component {
         const { isEditing, isRequired } = nextProps;
 
         // Lo que hago es comparar los datos del estado previo con los nuevos que vengan en las propiedades entrantes. Si son distintos, actualizo el estado.
-        return isEditing === prevState.isEditing && isRequired === prevState.isRequired 
+        return isEditing === prevState.isEditing && isRequired === prevState.isRequired
             ? null
             : { isEditing: isEditing, isRequired: isRequired };
     }
@@ -62,19 +70,20 @@ export default class MyInput extends React.Component {
 
     /**
      * Acción posterior tras perder el foco.
-     * 
-     * @returns null
      */
     onBlur() {
-        if (this.props.post_action !== undefined && this.props.post_action != null) {
-            this.props.post_action();
+        // Ejecutar primero los validadores si los hubiera
+
+        // Validador de código
+        if (this.props.validate_code !== undefined && this.props.validate_code !== null && this.props.validate_code === true) {
+            this.props.viewController.code_is_valid(this.state.entity, this.props.valueName);
         }
     }
 
     /**
      * Pinta un label para campos obligatorios.
-     * @param {*} isRequired 
-     * @returns 
+     * @param {boolean} isRequired 
+     * @returns {component}
      */
     renderRequiredLabel(isRequired) {
         if (isRequired) {

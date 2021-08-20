@@ -45,6 +45,15 @@ export default class BaseEntity {
   }
 
   /**
+   * Devuelve el nombre del campo código de la entidad.
+   * 
+   * @returns {string} Nombre del campo código de la entidad.
+   */
+  static getCodigoFieldName() {
+    return "codigo";
+  }
+
+  /**
    * Método estático a implementar. Convierte de json a instancia de clase.
    */
   static from() {

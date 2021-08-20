@@ -1,9 +1,11 @@
 import React from 'react';
 
-import { ViewStates } from "../utils/helper-utils";
+import { FilterClause, FilterTypes } from '../../core/utils/dao-utils';
+import { ViewStates, SelectActions } from "../utils/helper-utils";
 import { OrderByTypes, OrderByClause } from '../utils/dao-utils';
 import { APIActionCodes } from '../utils/helper-utils';
 import { trackPromise } from 'react-promise-tracker';
+import { FormattedMessage } from "react-intl";
 
 import toast from 'react-hot-toast';
 
@@ -238,7 +240,7 @@ export default class CoreController extends React.Component {
     /**
      * Función de de borrado de elementos.
      * 
-     * @param {entityClass} Elemento a eliminar. 
+     * @param {entity_class} Elemento a eliminar. 
      */
     deleteItem = (elementToDelete) => {
         // Asigno a itemToDelete el elemento pasado como parámetro.
@@ -342,6 +344,74 @@ export default class CoreController extends React.Component {
         }
 
         return result;
+    }
+
+
+    // VALIDACIÓN
+
+    /**
+     * Acción de validación de código de elemento seleccionado. Comprueba si ya existe un código igual en la base de datos. Se utiliza el elemento seleccionado para ello.
+     * 
+     * @param {any} item_to_check Si null, se utilizará el elemento seleccionado (this.selectedItem). 
+     * @param {string} field_code_name Si null, se utilizará el nombre del campo "código" del elemento seleccionado.
+     * @param {List[FilterClause]} additional_filters Filtros adicionales que se quisieran introducir.
+     */
+     code_is_valid = (item_to_check = null, field_code_name = null, additional_filters = null) => {
+        item_to_check = item_to_check !== null ? item_to_check : this.selectedItem;
+        field_code_name = field_code_name !== null ? field_code_name : this.entity_class.getCodigoFieldName();
+
+        if (item_to_check !== null 
+            && item_to_check[field_code_name] !== undefined && item_to_check[field_code_name] !== null) {
+            const codigo = item_to_check[field_code_name];   
+
+            // Filtrar por código de tipo de cliente.
+            const filters = [new FilterClause(field_code_name, FilterTypes.EQUALS, codigo)];
+
+            // Añadir los filtros adicionales si los hubiera
+            if (additional_filters !== null && additional_filters.length > 0) {
+                filters.push(additional_filters);
+            }
+
+            // Consultar con la API si ya existe un registro en la tabla con el código introducido
+            this.makeRequestToAPI(null, this.getRequestOptions(ViewStates.VALIDATE, null, null, filters, null, null, SelectActions.COUNT)).then((result) => {
+                // Si error es null al final, ha ido todo bien y el código es válido
+                var errorMsg = null;
+
+                // Eliminar el error del mapa de errores primero, si se produce algún error almacenará para prevenir el submit del formulario
+                if (item_to_check.errorMessagesInForm !== undefined && item_to_check.errorMessagesInForm !== null) {
+                    item_to_check.errorMessagesInForm.delete(field_code_name);
+                }
+
+                // Determinar el resultado
+                if (result !== undefined && result !== null) {
+                    if (result['success'] === true) {
+                        // Si count es mayor que cero, es que ya existe un registro con el mismo código
+                        var count = result['response_object'];
+
+                        if (count !== undefined && count !== null && count > 0) {
+                            // Avisar al usuario
+                            errorMsg = <FormattedMessage id="i18n_error_codeAlreadyExists" values={{ 0: codigo }} />;
+
+                            toast.error(errorMsg);
+                            
+                            // Añadir error al mapa de errores de la entidad
+                            if (item_to_check.errorMessagesInForm !== undefined && item_to_check.errorMessagesInForm !== null) {
+                                item_to_check.errorMessagesInForm.set(field_code_name, errorMsg);
+                            }
+                        }
+                    } else {
+                        errorMsg = result['response_object'];
+                        
+                        toast.error(errorMsg);
+                        
+                        // Añadir error al mapa de errores de la entidad
+                        if (item_to_check.errorMessagesInForm !== undefined && item_to_check.errorMessagesInForm !== null) {
+                            item_to_check.errorMessagesInForm.set(field_code_name, errorMsg);
+                        }
+                    }
+                }
+            });
+        }
     }
 
 }

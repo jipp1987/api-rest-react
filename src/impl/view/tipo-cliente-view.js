@@ -1,15 +1,11 @@
 import HeaderHelper from '../../core/view/header-helper';
 import MyInput from '../../core/components/my-input';
-import { FieldClause, FilterClause, FilterTypes } from '../../core/utils/dao-utils';
+import { FieldClause } from '../../core/utils/dao-utils';
 import ViewController from '../../core/view/view-controller';
 import { properties } from './../../properties';
 import TipoCliente from '../model/tipo_cliente';
 import { FormattedMessage } from "react-intl";
 import React from 'react';
-
-import { ViewStates, SelectActions } from "../../core/utils/helper-utils";
-
-import toast from 'react-hot-toast';
 
 /**
  * @class Controlador de mantenimiento de clientes.
@@ -65,47 +61,7 @@ export default class TipoClienteView extends ViewController {
             new HeaderHelper(0, 'codigo', 'i18n_common_code', '100px', null),
             new HeaderHelper(1, 'descripcion', 'i18n_common_description', '200px', null),
         ];
-    }
-
-    /**
-     * Acción posterior para validar el tipo de cliente.
-     */
-    tipo_cliente_is_valid = () => {
-        if (this.selectedItem !== undefined && this.selectedItem !== null && this.selectedItem.codigo !== undefined && this.selectedItem.codigo !== null) {
-            // Filtrar por código de tipo de cliente.
-            const filters = [new FilterClause("codigo", FilterTypes.EQUALS, this.selectedItem.codigo)];
-
-            // Consultar con la API si ya existe un registro en la tabla con el código introducido
-            this.makeRequestToAPI(null, this.getRequestOptions(ViewStates.VALIDATE, null, null, filters, null, null, SelectActions.COUNT)).then((result) => {
-                // Si error es null al final, ha ido todo bien y el código es válido
-                var errorMsg = null;
-
-                // Eliminar el error del mapa de errores primero, si se produce algún error almacenará para prevenir el submit del formulario
-                this.selectedItem.errorMessagesInForm.delete('codigo');
-
-                // Determinar el resultado
-                if (result !== undefined && result !== null) {
-                    if (result['success'] === true) {
-                        // Si count es mayor que cero, es que ya existe un registro con el mismo código
-                        var count = result['response_object'];
-
-                        if (count !== undefined && count !== null && count > 0) {
-                            // Avisar al usuario
-                            errorMsg = <FormattedMessage id="i18n_error_codeAlreadyExists" values={{ 0: this.selectedItem.codigo }} />;
-
-                            toast.error(errorMsg);
-                            this.selectedItem.errorMessagesInForm.set("codigo", errorMsg);
-                        }
-                    } else {
-                        errorMsg = result['response_object'];
-
-                        toast.error(errorMsg);
-                        this.selectedItem.errorMessagesInForm.set("codigo", errorMsg);
-                    }
-                }
-            });
-        }
-    }
+    } 
 
     /**
      * Implementación de renderizado de formulario de edición y detalle. Pensado para implementar.
@@ -118,15 +74,17 @@ export default class TipoClienteView extends ViewController {
         return (
             <div>
                 <MyInput
+                    viewController={this}
                     entity={this.selectedItem}
                     valueName="codigo"
                     label={<FormattedMessage id="i18n_common_code" />}
                     maxLength={4}
                     isEditing={!isInDetailMode}
                     isRequired={true}
-                    post_action={this.tipo_cliente_is_valid} />
+                    validate_code={true} />
 
                 <MyInput
+                    viewController={this}
                     entity={this.selectedItem}
                     valueName="descripcion"
                     label={<FormattedMessage id="i18n_common_description" />}
