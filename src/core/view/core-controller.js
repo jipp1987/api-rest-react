@@ -216,9 +216,10 @@ export default class CoreController extends React.Component {
     /**
      * Maneja el evento de envío del objeto a la api.
      * 
-     * @param {*} e 
+     * @param {event} e Evento de javascript. 
      */
-    saveChanges(e) {
+     saveChanges = async (e) => {
+        // Prevedir el comportamiento por defecto del formulario, es decir, prevenir el submit.
         e.preventDefault();
 
         // Comprobar primero que no hay errores en el formulario a través del campo del elemento seleccionado
@@ -391,7 +392,7 @@ export default class CoreController extends React.Component {
      * @param {string} field_code_name Si null, se utilizará el nombre del campo "código" del elemento seleccionado.
      * @param {List[FilterClause]} additional_filters Filtros adicionales que se quisieran introducir.
      */
-    code_is_valid = (item_to_check = null, field_code_name = null, additional_filters = null) => {
+    code_is_valid = async (item_to_check = null, field_code_name = null, additional_filters = null) => {
         item_to_check = item_to_check !== null ? item_to_check : this.selectedItem;
         field_code_name = field_code_name !== null ? field_code_name : this.entity_class.getCodigoFieldName();
 
@@ -406,22 +407,21 @@ export default class CoreController extends React.Component {
         }
 
         // Consultar con la API si ya existe un registro en la tabla con el código introducido. Importante devolver la promesa para recoger el resultado en la función validate.
-        return this.makeRequestToAPI(null, this.getRequestOptions(ViewStates.VALIDATE, null, null, filters, null, null, SelectActions.COUNT)).then((result) => {
-            // Determinar el resultado
-            if (result !== undefined && result !== null) {
-                if (result['success'] === true) {
-                    // Si count es mayor que cero, es que ya existe un registro con el mismo código
-                    var count = result['response_object'];
+        const result = await this.makeRequestToAPI(null, this.getRequestOptions(ViewStates.VALIDATE, null, null, filters, null, null, SelectActions.COUNT));
+        // Determinar el resultado
+        if (result !== undefined && result !== null) {
+            if (result['success'] === true) {
+                // Si count es mayor que cero, es que ya existe un registro con el mismo código
+                var count = result['response_object'];
 
-                    if (count !== undefined && count !== null && count > 0) {
-                        // Avisar al usuario
-                        return <FormattedMessage id="i18n_error_codeAlreadyExists" values={{ 0: codigo }} />;
-                    }
-                } else {
-                    return result['response_object'];
+                if (count !== undefined && count !== null && count > 0) {
+                    // Avisar al usuario
+                    return <FormattedMessage id="i18n_error_codeAlreadyExists" values={{ 0: codigo }} />;
                 }
+            } else {
+                return result['response_object'];
             }
-        });
+        }
     }
 
     string_is_only_numbers = (text) => {

@@ -71,14 +71,24 @@ export default class MyInput extends React.Component {
     /**
      * Acción posterior tras perder el foco.
      */
-    onBlur() {
+    onBlur = (event) => {
         // Ejecutar primero los validadores si los hubiera
-
+        
         // Validador de código
         if (this.props.validate_code !== undefined && this.props.validate_code !== null && this.props.validate_code === true) {
             this.props.viewController.validate(this.state.entity, this.props.valueName, this.props.viewController.code_is_valid, [this.state.entity, this.props.valueName]);
         }
-    }
+
+        // Si se ha hecho click en un botón sin haber tabulado, se lanzará el evento onblur pero prevendrá el click del botón. Comprobando el relatedTarget del evento 
+        // podemos forzar el click.
+        if (event !== undefined && event !== null) {
+            const { relatedTarget } = event;
+            
+            if (relatedTarget && ('submit' === relatedTarget.getAttribute('type') || 'button' === relatedTarget.getAttribute('type'))) {
+                relatedTarget.click();
+            }
+        }
+    };
 
     /**
      * Pinta un label para campos obligatorios.
@@ -123,7 +133,7 @@ export default class MyInput extends React.Component {
                         type="text"
                         className="my-input"
                         onChange={(e) => this.handleChange(e)}
-                        onBlur={() => this.onBlur()}
+                        onBlur={(e) => this.onBlur(e)}
                         size={size}
                         maxLength={maxLength}
                         minLength={minLength}

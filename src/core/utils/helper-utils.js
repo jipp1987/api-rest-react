@@ -22,7 +22,7 @@ const APIActionCodes = {
 /**
  * Códigos de acción para la API.
  */
- const SelectActions = {
+const SelectActions = {
     COUNT: 1,
 }
 
@@ -97,6 +97,17 @@ function focusNextElement(currentElementId) {
 }
 
 /**
+ * Fuerza el evento onBlur de todos los elementos activos del formulario.
+ */
+function forceOnBlur() {
+    document.querySelectorAll('input,textarea').forEach(function (element) {
+        if (element === document.activeElement) {
+            return element.blur();
+        }
+    });
+}
+
+/**
  * Modelado para modales. 
  */
 class ModalHelper {
@@ -113,4 +124,4 @@ class ModalHelper {
 
 
 // Exportar como módulo.
-module.exports = { ViewStates, APIActionCodes, SelectActions, resolve_property_by_string, number_format, focusNextElement, ModalHelper }
+module.exports = { ViewStates, APIActionCodes, SelectActions, resolve_property_by_string, number_format, focusNextElement, forceOnBlur, ModalHelper }

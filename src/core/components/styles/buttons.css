@@ -34,9 +34,16 @@
     opacity: 0.5;
 }
 
+.custom-button {
+    background-color: transparent !important;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
 .image-button {
     background-size: cover !important;
-    display: block;
     width: 20px;
     height: 20px;
 }

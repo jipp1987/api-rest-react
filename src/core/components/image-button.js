@@ -24,12 +24,14 @@ export default function ImageButton(props) {
     }
 
     const label = props.title !== undefined && props.title !== null ? 
-        <span onClick={() => document.getElementById(id).click()} className='btn-text'><FormattedMessage id={props.title} /></span> : null;
+        <span className='btn-text'><FormattedMessage id={props.title} /></span> : null;
 
     return (
         <div className='btn-container'>
-            <button id={id} className={'image-button ' + props.className} type={type} onClick={props.onClick} style={props.style} />
-            {label}
+            <button className="custom-button" id={id} type={type} onClick={props.onClick} style={props.style}>
+                <span className={'image-button ' + props.className}></span>
+                {label}
+            </button>
         </div>
     );
 }
