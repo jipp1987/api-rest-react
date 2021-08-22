@@ -76,7 +76,7 @@ export default class MyInput extends React.Component {
 
         // Validador de código
         if (this.props.validate_code !== undefined && this.props.validate_code !== null && this.props.validate_code === true) {
-            this.props.viewController.code_is_valid(this.state.entity, this.props.valueName);
+            this.props.viewController.validate(this.state.entity, this.props.valueName, this.props.viewController.code_is_valid, [this.state.entity, this.props.valueName]);
         }
     }
 

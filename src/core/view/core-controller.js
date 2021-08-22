@@ -202,11 +202,14 @@ export default class CoreController extends React.Component {
     /**
      * Hace una consulta a la API para traer datos para el listado.
      */
-     fetchData = () => {
+    fetchData = () => {
         this.makeRequestToAPI(null, this.getRequestOptions(ViewStates.LIST)).then((result) => {
-            this.setState({
-                items: this.convertFromJsonToEntityList(result['response_object'])
-            });
+            // Controlar que haya resultado: ha podido producirse algún error durante la conexión con la API y no haber resultado.
+            if (result !== undefined && result !== null) {
+                this.setState({
+                    items: this.convertFromJsonToEntityList(result['response_object'])
+                });
+            }
         });
     }
 
@@ -264,7 +267,7 @@ export default class CoreController extends React.Component {
      * 
      * @param {HeaderHelper} header 
      */
-     add_order_by_header(header) {
+    add_order_by_header(header) {
         // Clono con slice la lista de order bys según el estado.
         const order_list = this.order == null ? [] : this.order.slice();
 
@@ -315,7 +318,7 @@ export default class CoreController extends React.Component {
     /**
      * Reestablece el orden por defecto.
      */
-     restartOrder() {
+    restartOrder() {
         // Reestablecer cabeceras
         // Modifico las cabeceras del controlador también
         for (let i = 0; i < this.headers.length; i++) {
@@ -348,6 +351,38 @@ export default class CoreController extends React.Component {
 
 
     // VALIDACIÓN
+    /**
+     * Función asíncrona para validar un objeto pasado como parámetro. El objeto debería heredar de BaseEntity para asegurar que posee el mapa de errores de validación.
+     * 
+     * @param {any} item_to_check Elemento a validar.
+     * @param {string} field_name Nombre del campo a validar.
+     * @param {func} callback Función a ejecutar. Debería devolver un string con el error en caso de que se produzca, o no devolver nada si todo ha ido bien.
+     * @param {array} params Array de parámetros para la función.
+     */
+    validate = async (item_to_check, field_name, callback, params) => {
+        if (item_to_check !== null && item_to_check[field_name] !== undefined && item_to_check[field_name] !== null) {
+            // Tiene mapa de errores (campo errorMessagesInForm)
+            const hasErrorsMap = item_to_check.errorMessagesInForm !== undefined && item_to_check.errorMessagesInForm !== null;
+
+            // Eliminar el error del mapa de errores primero, si se produce algún error almacenará para prevenir el submit del formulario
+            if (hasErrorsMap) {
+                item_to_check.errorMessagesInForm.delete(field_name);
+            }
+
+            // Llamar a función de validación. Importante utilizar await para que la función asíncrona espera al resultado de la promesa.
+            const error = await callback.apply(this, params);
+
+            // Si ha devuelto algo distinto de undefined/null significa que se ha producido algún error, por tanto hay que grabarlo en el mapa de errores
+            if (error !== undefined && error !== null) {
+                if (hasErrorsMap) {
+                    item_to_check.errorMessagesInForm.set(field_name, error);
+                }
+
+                // Mostrar aviso de error
+                toast.error(error);
+            }
+        }
+    }
 
     /**
      * Acción de validación de código de elemento seleccionado. Comprueba si ya existe un código igual en la base de datos. Se utiliza el elemento seleccionado para ello.
@@ -356,62 +391,41 @@ export default class CoreController extends React.Component {
      * @param {string} field_code_name Si null, se utilizará el nombre del campo "código" del elemento seleccionado.
      * @param {List[FilterClause]} additional_filters Filtros adicionales que se quisieran introducir.
      */
-     code_is_valid = (item_to_check = null, field_code_name = null, additional_filters = null) => {
+    code_is_valid = (item_to_check = null, field_code_name = null, additional_filters = null) => {
         item_to_check = item_to_check !== null ? item_to_check : this.selectedItem;
         field_code_name = field_code_name !== null ? field_code_name : this.entity_class.getCodigoFieldName();
 
-        if (item_to_check !== null 
-            && item_to_check[field_code_name] !== undefined && item_to_check[field_code_name] !== null) {
-            const codigo = item_to_check[field_code_name];   
+        const codigo = item_to_check[field_code_name];
 
-            // Filtrar por código de tipo de cliente.
-            const filters = [new FilterClause(field_code_name, FilterTypes.EQUALS, codigo)];
+        // Filtrar por código de tipo de cliente.
+        const filters = [new FilterClause(field_code_name, FilterTypes.EQUALS, codigo)];
 
-            // Añadir los filtros adicionales si los hubiera
-            if (additional_filters !== null && additional_filters.length > 0) {
-                filters.push(additional_filters);
-            }
-
-            // Consultar con la API si ya existe un registro en la tabla con el código introducido
-            this.makeRequestToAPI(null, this.getRequestOptions(ViewStates.VALIDATE, null, null, filters, null, null, SelectActions.COUNT)).then((result) => {
-                // Si error es null al final, ha ido todo bien y el código es válido
-                var errorMsg = null;
-
-                // Eliminar el error del mapa de errores primero, si se produce algún error almacenará para prevenir el submit del formulario
-                if (item_to_check.errorMessagesInForm !== undefined && item_to_check.errorMessagesInForm !== null) {
-                    item_to_check.errorMessagesInForm.delete(field_code_name);
-                }
-
-                // Determinar el resultado
-                if (result !== undefined && result !== null) {
-                    if (result['success'] === true) {
-                        // Si count es mayor que cero, es que ya existe un registro con el mismo código
-                        var count = result['response_object'];
-
-                        if (count !== undefined && count !== null && count > 0) {
-                            // Avisar al usuario
-                            errorMsg = <FormattedMessage id="i18n_error_codeAlreadyExists" values={{ 0: codigo }} />;
-
-                            toast.error(errorMsg);
-                            
-                            // Añadir error al mapa de errores de la entidad
-                            if (item_to_check.errorMessagesInForm !== undefined && item_to_check.errorMessagesInForm !== null) {
-                                item_to_check.errorMessagesInForm.set(field_code_name, errorMsg);
-                            }
-                        }
-                    } else {
-                        errorMsg = result['response_object'];
-                        
-                        toast.error(errorMsg);
-                        
-                        // Añadir error al mapa de errores de la entidad
-                        if (item_to_check.errorMessagesInForm !== undefined && item_to_check.errorMessagesInForm !== null) {
-                            item_to_check.errorMessagesInForm.set(field_code_name, errorMsg);
-                        }
-                    }
-                }
-            });
+        // Añadir los filtros adicionales si los hubiera
+        if (additional_filters !== null && additional_filters.length > 0) {
+            filters.push(additional_filters);
         }
+
+        // Consultar con la API si ya existe un registro en la tabla con el código introducido. Importante devolver la promesa para recoger el resultado en la función validate.
+        return this.makeRequestToAPI(null, this.getRequestOptions(ViewStates.VALIDATE, null, null, filters, null, null, SelectActions.COUNT)).then((result) => {
+            // Determinar el resultado
+            if (result !== undefined && result !== null) {
+                if (result['success'] === true) {
+                    // Si count es mayor que cero, es que ya existe un registro con el mismo código
+                    var count = result['response_object'];
+
+                    if (count !== undefined && count !== null && count > 0) {
+                        // Avisar al usuario
+                        return <FormattedMessage id="i18n_error_codeAlreadyExists" values={{ 0: codigo }} />;
+                    }
+                } else {
+                    return result['response_object'];
+                }
+            }
+        });
+    }
+
+    string_is_only_numbers = (text) => {
+        return /^\d+$/.test(text);
     }
 
 }
