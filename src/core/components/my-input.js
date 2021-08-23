@@ -20,7 +20,8 @@ export default class MyInput extends React.Component {
         minLength: PropTypes.number,
         isEditing: PropTypes.bool,
         isRequired: PropTypes.bool,
-        validate_code: PropTypes.bool
+        validate_code: PropTypes.bool,
+        validate_if_is_numeric: PropTypes.bool
     };
 
     constructor(props) {
@@ -71,17 +72,27 @@ export default class MyInput extends React.Component {
     /**
      * Acción posterior tras perder el foco.
      */
-    onBlur = (event) => {
+    onBlur = async (event) => {
         // Ejecutar primero los validadores si los hubiera
-        
+        // Asumo que va a ser válido.
+        var isValid = true;
+
         // Validador de código
         if (this.props.validate_code !== undefined && this.props.validate_code !== null && this.props.validate_code === true) {
-            this.props.viewController.validate(this.state.entity, this.props.valueName, this.props.viewController.code_is_valid, [this.state.entity, this.props.valueName]);
+            // Como validate me devuelve una promesa, la función debe ser asíncrona y tengo que poner un await aquí para esperar a recoger el resultado.
+            isValid = await this.props.viewController.validate(this.state.entity, this.props.valueName, this.props.viewController.code_is_valid, 
+                [this.state.entity, this.props.valueName]);
+        }
+
+        // Validador de si es un string numérico
+        if (isValid && this.props.validate_if_is_numeric !== undefined && this.props.validate_if_is_numeric !== null && this.props.validate_if_is_numeric === true) {
+            isValid = await this.props.viewController.validate(this.state.entity, this.props.valueName, this.props.viewController.string_is_only_numbers, 
+                [this.state.value]);
         }
 
         // Si se ha hecho click en un botón sin haber tabulado, se lanzará el evento onblur pero prevendrá el click del botón. Comprobando el relatedTarget del evento 
-        // podemos forzar el click.
-        if (event !== undefined && event !== null) {
+        // podemos forzar el click. Sólo pasamos por aquí si la validación ha sido ok.
+        if (isValid && event !== undefined && event !== null) {
             const { relatedTarget } = event;
             
             if (relatedTarget && ('submit' === relatedTarget.getAttribute('type') || 'button' === relatedTarget.getAttribute('type'))) {

@@ -81,7 +81,8 @@ export default class TipoClienteView extends ViewController {
                     maxLength={4}
                     isEditing={!isInDetailMode}
                     isRequired={true}
-                    validate_code={true} />
+                    validate_code={true}
+                    validate_if_is_numeric={true} />
 
                 <MyInput
                     viewController={this}

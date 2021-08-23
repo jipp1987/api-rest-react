@@ -25,6 +25,7 @@
 
 /* IMAGEBUTTONS */
 
+/* Contenedor del botón */
 .btn-container {
     display: flex;
     cursor: pointer;
@@ -34,6 +35,7 @@
     opacity: 0.5;
 }
 
+/* Estilo del botón para centrar la imagen y el texto verticalmente. */
 .custom-button {
     background-color: transparent !important;
     display: flex;
@@ -42,16 +44,19 @@
     align-items: center;
 }
 
+/* Estilo principal de la imagen. */
 .image-button {
     background-size: cover !important;
     width: 20px;
     height: 20px;
 }
 
+/* Texto del botón. */
 .btn-text {
     margin-left: 5px;
 }
 
+/* Estilos propios de cada icono. */
 .restart-button {
     background: url("../../resources/restart.png") no-repeat;
 }

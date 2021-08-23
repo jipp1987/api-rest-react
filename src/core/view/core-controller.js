@@ -359,8 +359,12 @@ export default class CoreController extends React.Component {
      * @param {string} field_name Nombre del campo a validar.
      * @param {func} callback Función a ejecutar. Debería devolver un string con el error en caso de que se produzca, o no devolver nada si todo ha ido bien.
      * @param {array} params Array de parámetros para la función.
+     * @returns {boolean} true si es válido, false si no lo es.
      */
     validate = async (item_to_check, field_name, callback, params) => {
+        // bool para saber si ha ido todo bien.
+        var isValid = true;
+
         if (item_to_check !== null && item_to_check[field_name] !== undefined && item_to_check[field_name] !== null) {
             // Tiene mapa de errores (campo errorMessagesInForm)
             const hasErrorsMap = item_to_check.errorMessagesInForm !== undefined && item_to_check.errorMessagesInForm !== null;
@@ -379,10 +383,15 @@ export default class CoreController extends React.Component {
                     item_to_check.errorMessagesInForm.set(field_name, error);
                 }
 
+                // Existe error
+                isValid = false;
+
                 // Mostrar aviso de error
                 toast.error(error);
             }
         }
+
+        return isValid;
     }
 
     /**
@@ -424,8 +433,14 @@ export default class CoreController extends React.Component {
         }
     }
 
+    /**
+     * Valida si el string introducido está compuesto sólo por números.
+     * 
+     * @param {string} text 
+     * @returns null si es válido, una cadena con el error si no lo es.
+     */
     string_is_only_numbers = (text) => {
-        return /^\d+$/.test(text);
+        return (/^\d+$/.test(text) ? null : <FormattedMessage id="i18n_error_stringIsNotNumber" />);
     }
 
 }
