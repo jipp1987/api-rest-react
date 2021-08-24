@@ -12,10 +12,16 @@ export default class BaseEntity {
       throw new Error("Abstract classes can't be instantiated.");
     }
 
-    // Asignar un uuid para los keys de tablas y otros componentes
+    /**
+     * Id único para evitar problemas en tablas y listados de react.
+     */
     this._uuid = uuidv4();
 
-    // Mapa de errores por atributo. Necesario para la validación en los formularios.
+    /**
+     * Mapa de errores por atributo. Necesario para la validación en los formularios. La clave es un string con el nombre de la propiedad errónea; 
+     * el valor es una tupla con el error y el valor erróneo. Merece la pena almacenar el valor erróneo porque si se cambia el valor de la propiedad desde otro punto, se puede 
+     * comparar el valor actual con el almacenado junto al error para saber si ha cambiado y si es así eliminar el error del mapa.
+    */
     this._errorMessagesInForm = new Map();
   }
 

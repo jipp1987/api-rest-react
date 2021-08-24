@@ -74,8 +74,9 @@ export default class MyInput extends React.Component {
      */
     onBlur = async (event) => {
         // Ejecutar primero los validadores si los hubiera
-        // Asumo que va a ser válido.
-        var isValid = true;
+        // Asumo que va a ser null para evitar forzar el click al final si no hay eventos asíncronos; los eventos asíncronos durante la validación 
+        // previenen el click del botón si se hace click sin salir del input, es decir, se lanza el onblur del input pero luego no hace click.
+        var isValid = null;
 
         // Validador de código
         if (this.props.validate_code !== undefined && this.props.validate_code !== null && this.props.validate_code === true) {
@@ -94,7 +95,7 @@ export default class MyInput extends React.Component {
         // podemos forzar el click. Sólo pasamos por aquí si la validación ha sido ok.
         if (isValid && event !== undefined && event !== null) {
             const { relatedTarget } = event;
-            
+
             if (relatedTarget && ('submit' === relatedTarget.getAttribute('type') || 'button' === relatedTarget.getAttribute('type'))) {
                 relatedTarget.click();
             }

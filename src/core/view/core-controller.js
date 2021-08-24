@@ -222,6 +222,27 @@ export default class CoreController extends React.Component {
         // Prevedir el comportamiento por defecto del formulario, es decir, prevenir el submit.
         e.preventDefault();
 
+        // Primera pasada sobre el mapa de errores para eliminar aquéllos que no coincide el valor que ha provocado el error con el valor actual que tiene la entidad.
+        if (this.selectedItem.errorMessagesInForm.size > 0) {
+            // Mejor no eliminar claves durante la iteración; las guardo en un listado y ya las borro luego.
+            var keysToDelete = [];
+
+            for (let key of this.selectedItem.errorMessagesInForm.keys()) {
+                // El valor de cada clave del mapa es una tupla con el error y el valor que lo ha provocado. Lo que hago es comparar el valor actual con este último.
+                if (this.selectedItem[key] !== this.selectedItem.errorMessagesInForm.get(key)[1]) {
+                    // Si son diferentes, guardo la clave en la lista de claves a eliminar.
+                    keysToDelete.push(key);
+                }
+            }
+
+            // Elimino las claves del mapa de errores
+            if (keysToDelete.length > 0) {
+                for (let key of keysToDelete) {
+                    this.selectedItem.errorMessagesInForm.delete(key);                    
+                }
+            }
+        }
+
         // Comprobar primero que no hay errores en el formulario a través del campo del elemento seleccionado
         if (this.selectedItem.errorMessagesInForm.size === 0) {
             this.makeRequestToAPI(null, this.getRequestOptions()).then((result) => {
@@ -236,7 +257,8 @@ export default class CoreController extends React.Component {
         } else {
             // Si hay errores, mostrar toast
             for (let value of this.selectedItem.errorMessagesInForm.values()) {
-                toast.error(value);
+                // El primer valor de la tupla es el mensaje de error
+                toast.error(value[0]);
             }
         }
     };
@@ -380,7 +402,8 @@ export default class CoreController extends React.Component {
             // Si ha devuelto algo distinto de undefined/null significa que se ha producido algún error, por tanto hay que grabarlo en el mapa de errores
             if (error !== undefined && error !== null) {
                 if (hasErrorsMap) {
-                    item_to_check.errorMessagesInForm.set(field_name, error);
+                    // Observar que guardo una tupla con el error y el valor que lo ha provocado.
+                    item_to_check.errorMessagesInForm.set(field_name, [error, item_to_check[field_name]]);
                 }
 
                 // Existe error
