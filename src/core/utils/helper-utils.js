@@ -10,6 +10,14 @@ const ViewStates = {
 }
 
 /**
+ * Validadores de vista.
+ */
+const ViewValidators = {
+    CODE_VALIDATOR: "CODE_VALIDATOR",
+    IS_NUMERIC_VALIDATOR: "IS_NUMERIC_VALIDATOR",
+}
+
+/**
  * Códigos de acción para la API.
  */
 const APIActionCodes = {
@@ -124,4 +132,4 @@ class ModalHelper {
 
 
 // Exportar como módulo.
-module.exports = { ViewStates, APIActionCodes, SelectActions, resolve_property_by_string, number_format, focusNextElement, forceOnBlur, ModalHelper }
+module.exports = { ViewStates, ViewValidators, APIActionCodes, SelectActions, resolve_property_by_string, number_format, focusNextElement, forceOnBlur, ModalHelper }

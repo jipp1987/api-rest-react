@@ -11,7 +11,6 @@ import './styles/inputs.css';
 export default class MyInput extends React.Component {
 
     static propTypes = {
-        viewController: PropTypes.object.isRequired,
         entity: PropTypes.object.isRequired,
         valueName: PropTypes.string.isRequired,
         label: PropTypes.object.isRequired,
@@ -20,8 +19,7 @@ export default class MyInput extends React.Component {
         minLength: PropTypes.number,
         isEditing: PropTypes.bool,
         isRequired: PropTypes.bool,
-        validate_code: PropTypes.bool,
-        validate_if_is_numeric: PropTypes.bool
+        validation: PropTypes.func,
     };
 
     constructor(props) {
@@ -31,13 +29,6 @@ export default class MyInput extends React.Component {
         // Compruebo si ha llegado algún valor de la propia entidad, sino lo inicializo en string vacío. Si no lo hago se produce un error en javascript.
         var value = props.entity[props.valueName] !== null && props.entity[props.valueName] !== undefined ? props.entity[props.valueName] : "";
         var isRequired = props.isRequired !== undefined && props.isRequired !== null ? props.isRequired : false;
-
-        // Establecer un array de validadores vacío por defecto
-        this.validators = [];
-        // Si se han pasado validadores al input, añadirlos al listado para ejecutar primero en el evento onBlur.
-        if (props.validators !== undefined && props.validators !== null) {
-            this.validators.push(props.validators);
-        }
 
         this.state = {
             // Necesito almacenar el valor del input como tal en el estado para que lo mantenga ante los distintos cambios, de tal modo que el input esté controlado
@@ -78,17 +69,12 @@ export default class MyInput extends React.Component {
         // previenen el click del botón si se hace click sin salir del input, es decir, se lanza el onblur del input pero luego no hace click.
         var isValid = null;
 
-        // Validador de código
-        if (this.props.validate_code !== undefined && this.props.validate_code !== null && this.props.validate_code === true) {
-            // Como validate me devuelve una promesa, la función debe ser asíncrona y tengo que poner un await aquí para esperar a recoger el resultado.
-            isValid = await this.props.viewController.validate(this.state.entity, this.props.valueName, this.props.viewController.code_is_valid, 
-                [this.state.entity, this.props.valueName]);
-        }
+        const { validation } = this.props;
 
-        // Validador de si es un string numérico
-        if (isValid && this.props.validate_if_is_numeric !== undefined && this.props.validate_if_is_numeric !== null && this.props.validate_if_is_numeric === true) {
-            isValid = await this.props.viewController.validate(this.state.entity, this.props.valueName, this.props.viewController.string_is_only_numbers, 
-                [this.state.value]);
+        // Validador de código
+        if (validation !== undefined && validation !== null) {
+            // Como validate me devuelve una promesa, la función debe ser asíncrona y tengo que poner un await aquí para esperar a recoger el resultado.
+             isValid = await validation();
         }
 
         // Si se ha hecho click en un botón sin haber tabulado, se lanzará el evento onblur pero prevendrá el click del botón. Comprobando el relatedTarget del evento 

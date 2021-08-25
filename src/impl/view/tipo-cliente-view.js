@@ -6,6 +6,7 @@ import { properties } from './../../properties';
 import TipoCliente from '../model/tipo_cliente';
 import { FormattedMessage } from "react-intl";
 import React from 'react';
+import { ViewValidators } from '../../core/utils/helper-utils';
 
 /**
  * @class Controlador de mantenimiento de clientes.
@@ -74,18 +75,15 @@ export default class TipoClienteView extends ViewController {
         return (
             <div>
                 <MyInput
-                    viewController={this}
                     entity={this.selectedItem}
                     valueName="codigo"
                     label={<FormattedMessage id="i18n_common_code" />}
                     maxLength={4}
                     isEditing={!isInDetailMode}
                     isRequired={true}
-                    validate_code={true}
-                    validate_if_is_numeric={true} />
+                    validation={() => this.validateEntity(this.selectedItem, "codigo", ViewValidators.CODE_VALIDATOR, ViewValidators.IS_NUMERIC_VALIDATOR)} />
 
                 <MyInput
-                    viewController={this}
                     entity={this.selectedItem}
                     valueName="descripcion"
                     label={<FormattedMessage id="i18n_common_description" />}

@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { FilterClause, FilterTypes } from '../../core/utils/dao-utils';
-import { ViewStates, SelectActions } from "../utils/helper-utils";
+import { ViewStates, SelectActions, ViewValidators } from "../utils/helper-utils";
 import { OrderByTypes, OrderByClause } from '../utils/dao-utils';
 import { APIActionCodes } from '../utils/helper-utils';
 import { trackPromise } from 'react-promise-tracker';
@@ -218,7 +218,7 @@ export default class CoreController extends React.Component {
      * 
      * @param {event} e Evento de javascript. 
      */
-     saveChanges = async (e) => {
+    saveChanges = async (e) => {
         // Prevedir el comportamiento por defecto del formulario, es decir, prevenir el submit.
         e.preventDefault();
 
@@ -238,7 +238,7 @@ export default class CoreController extends React.Component {
             // Elimino las claves del mapa de errores
             if (keysToDelete.length > 0) {
                 for (let key of keysToDelete) {
-                    this.selectedItem.errorMessagesInForm.delete(key);                    
+                    this.selectedItem.errorMessagesInForm.delete(key);
                 }
             }
         }
@@ -375,6 +375,60 @@ export default class CoreController extends React.Component {
 
     // VALIDACIÓN
     /**
+     * Valida la entidad.
+     * 
+     * @param {BaseEntity} item_to_check Entidad a comprobar.
+     * @param {string} field_name Nombre del campo a validar.
+     * @param  {...ViewValidators} validators Listado de enumero de ViewValidators.
+     * @returns {boolean} true si es válido, false si no lo es.
+     */
+    validateEntity = (item_to_check, field_name, ...validators) => {
+        // Asumo que será válido
+        var is_valid = true;
+
+        // Declaro la función a llamar y sus parámetros
+        let function_to_call;
+        let function_to_call_params;
+
+        for (let validator of validators) {
+            // Si algún validador devuelve false, que no continúe
+            if (!is_valid) {
+                break;
+            }
+
+            // Reinicio las variables en cada iteración
+            function_to_call = null;
+            function_to_call_params = null;
+
+            // Voy comprobando los validadores pasados como parámetro
+            switch (validator) {
+                case ViewValidators.CODE_VALIDATOR:
+                    // Validador de código
+                    function_to_call = this.code_is_valid;
+                    // Parámetros: entidad a comprobar y nombre del campo
+                    function_to_call_params = [item_to_check, field_name];
+                    break;
+
+                case ViewValidators.IS_NUMERIC_VALIDATOR:
+                    // Validador de string numérico
+                    function_to_call = this.string_is_only_numbers;
+                    // Parámetros: valor del campo en la entidad
+                    function_to_call_params = [item_to_check[field_name]];
+                    break;
+
+                default:
+                    break;
+            }
+
+            if (function_to_call !== null) {
+                is_valid = this._validate(item_to_check, field_name, function_to_call, function_to_call_params);
+            }
+        }
+
+        return is_valid;
+    }
+
+    /**
      * Función asíncrona para validar un objeto pasado como parámetro. El objeto debería heredar de BaseEntity para asegurar que posee el mapa de errores de validación.
      * 
      * @param {any} item_to_check Elemento a validar.
@@ -383,7 +437,7 @@ export default class CoreController extends React.Component {
      * @param {array} params Array de parámetros para la función.
      * @returns {boolean} true si es válido, false si no lo es.
      */
-    validate = async (item_to_check, field_name, callback, params) => {
+    _validate = async (item_to_check, field_name, callback, params) => {
         // bool para saber si ha ido todo bien.
         var isValid = true;
 
