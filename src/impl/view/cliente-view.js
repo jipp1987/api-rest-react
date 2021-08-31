@@ -196,6 +196,7 @@ export default class ClienteView extends ViewController {
                     id={this.id + "_tipoCliente"}
                     entity={this.selectedItem.tipoCliente}
                     valueName="codigo"
+                    idFieldName="tipo_cliente_id"
                     suggestAction={(inputText) => this.suggestTiposCliente(inputText)}
                     label={<FormattedMessage id="i18n_clientes_customer_type" />}
                     maxLength={4}
