@@ -75,6 +75,7 @@ export default class TipoClienteView extends ViewController {
         return (
             <div>
                 <MyInput
+                    id={this.id + "_codigo"}
                     entity={this.selectedItem}
                     valueName="codigo"
                     label={<FormattedMessage id="i18n_common_code" />}
@@ -84,6 +85,7 @@ export default class TipoClienteView extends ViewController {
                     validation={() => this.validateEntity(this.selectedItem, "codigo", ViewValidators.CODE_VALIDATOR, ViewValidators.IS_NUMERIC_VALIDATOR)} />
 
                 <MyInput
+                    id={this.id + "_descripcion"}
                     entity={this.selectedItem}
                     valueName="descripcion"
                     label={<FormattedMessage id="i18n_common_description" />}

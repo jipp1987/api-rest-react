@@ -76,26 +76,27 @@ export default class CoreController extends React.Component {
      * 
      * @param {string} url Dirección de la API. Si null, se utiliza la url asociada al controlador. 
      * @param {RequestOptions} requestOptions Objecto de opciones para la petición.
+     * @param {boolean} waitStatus Si true, mostrará un modal waitStatus.
      * @returns {Promise} Evento asíncrono que a su vez devuelve el resultado de la operación 
      * (que es un objeto RequestResponse con atributos success, status_code y response_object). Dado que devuelve una promesa, la función que llame a ésta 
      * debe emplear then para captura el return interno, es decir, el resultado.
      */
-    makeRequestToAPI(url, requestOptions) {
-        return trackPromise(
-            fetch(url !== undefined && url !== null ? url : this.url, requestOptions)
-                .then(res => res.json())
-                .then(
-                    (result) => {
-                        // Result es un objeto RequestResponse con atributos success, status_code y response_object
-                        return result;
-                    },
+    makeRequestToAPI(url, requestOptions, waitStatus = true) {
+        const query = fetch(url !== undefined && url !== null ? url : this.url, requestOptions)
+            .then(res => res.json())
+            .then(
+                (result) => {
+                    // Result es un objeto RequestResponse con atributos success, status_code y response_object
+                    return result;
+                },
 
-                    // TODO Si se produce un error en la consulta con la API, habrá que hacer algo aquí, redirigir a otra página o algo así
-                    (error) => {
-                        toast.error(error.message);
-                    }
-                )
-        );
+                // TODO Si se produce un error en la consulta con la API, habrá que hacer algo aquí, redirigir a otra página o algo así
+                (error) => {
+                    toast.error(error.message);
+                }
+            );
+
+        return (waitStatus ? trackPromise(query) : query);
     }
 
     /**

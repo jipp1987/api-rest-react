@@ -1,8 +1,16 @@
 import HeaderHelper from '../../core/view/header-helper';
 import Cliente from '../model/cliente';
-import { JoinTypes, JoinClause, FieldClause } from '../../core/utils/dao-utils';
+import { JoinTypes, JoinClause, FieldClause, FilterClause, FilterTypes, OperatorTypes } from '../../core/utils/dao-utils';
 import ViewController from '../../core/view/view-controller';
+import { ViewStates } from '../../core/utils/helper-utils';
+import { ViewValidators } from '../../core/utils/helper-utils';
 import { properties } from './../../properties';
+
+import TipoCliente from '../model/tipo_cliente';
+import MyInput from '../../core/components/my-input';
+import SuggestionBox from '../../core/components/suggestion-box';
+
+import { FormattedMessage } from "react-intl";
 
 /**
  * @class Controlador de mantenimiento de clientes.
@@ -75,14 +83,126 @@ export default class ClienteView extends ViewController {
         ];
     }
 
-    
     /**
-     * Implementación de renderizado de formulario de edición y detalle. Pensado para implementar.
-     * 
-     * @returns Componente visual de formulario de edición/detalle.
+     * Sobrescritura. Prepara una nueva instancia del elemento seleccionado para la creación.
      */
-     renderDetailEditForm() {
-        return null;
+    prepareCreate() {
+        this.selectedItem = new Cliente();
+        this.selectedItem.tipoCliente = new TipoCliente();
+    }
+
+    /**
+     * Busca por coincidencia en el código o descripción de los tipos de cliente.
+     * 
+     * @param {string} inputText Texto que se usará en los filtros por coincidencia.
+     * @returns {list} Devuelve una lista de resultados obtenidos de la api, o bien una lista vacía si no encuentra nada.
+     */
+    async suggestTiposCliente(inputText) {
+        var list = [];
+
+        if (inputText !== undefined && inputText !== null) {
+            // Consultar a la api de tipos de cliente
+            const url = properties.apiUrl + '/api/TipoCliente';
+
+            
+            // Buscar por código y descripción
+            const filters = [
+                new FilterClause("codigo", FilterTypes.STARTS_WITH, inputText),
+                new FilterClause("descripcion", FilterTypes.STARTS_WITH, inputText, null, OperatorTypes.OR),
+            ];
+            
+            // Campos: el id tengo que pasarlo siempre
+            const fields = [
+                new FieldClause("tipo_cliente_id"),
+                new FieldClause("codigo"),
+                new FieldClause("descripcion"),
+            ];
+            
+            // TODO Esto hay que revisarlo: tengo que pasar listados vacíos porque si paso null me coge los listados de cláusulas del propio controlador. 
+            // Buscar una forma de poder pasar null o nada mejor.
+            const result = await this.makeRequestToAPI(url, this.getRequestOptions(ViewStates.LIST, fields, [], filters, [], []), false);
+            
+            // Determinar el resultado
+            if (result !== undefined && result !== null) {
+                // Es una lista de diccionarios: aquellas claves que no formen parte de la lista de fields, las elimino
+                list = result['response_object'];
+
+                if (list !== undefined && list !== null && list.length > 0) {
+                    // Eliminar las claves que no formen parte del listado de campos seleccionado
+                    var selected_fields = [];
+                    var not_selected_fields = [];
+                    
+                    // Array de campos seleccionados en los fieldclauses
+                    fields.forEach(field => selected_fields.push(field.field_name));
+                    
+                    // Como todos los elementos del resultado tienen las mismas claves, utilizo el primer elemento para obtener aquellas claves que no forman parte
+                    // del conjunto de campos seleccionados
+                    Object.keys(list[0]).forEach(function(k) {
+                        if (!selected_fields.includes(k)) {
+                            not_selected_fields.push(k);
+                        }
+                    });
+    
+                    // Recorro los diccionarios y elimino esas claves
+                    list.forEach(dict => not_selected_fields.forEach(e => delete dict[e]));
+                } else {
+                    list = [];
+                }
+            }
+        }
+
+        return list;
+    }
+
+    /**
+    * Implementación de renderizado de formulario de edición y detalle. Pensado para implementar.
+    * 
+    * @param {boolean} isInDetailMode Si true se mostrarán todos los campos deshabilitados.
+    *  
+    * @returns Componente visual de formulario de edición/detalle.
+    */
+    renderDetailEditForm(isInDetailMode = false) {
+        return (
+            <div>
+                <MyInput
+                    id={this.id + "_codigo"}
+                    entity={this.selectedItem}
+                    valueName="codigo"
+                    label={<FormattedMessage id="i18n_common_code" />}
+                    maxLength={10}
+                    isEditing={!isInDetailMode}
+                    isRequired={true}
+                    validation={() => this.validateEntity(this.selectedItem, "codigo", ViewValidators.CODE_VALIDATOR, ViewValidators.IS_NUMERIC_VALIDATOR)} />
+
+                <MyInput
+                    id={this.id + "_nombre"}
+                    entity={this.selectedItem}
+                    valueName="nombre"
+                    label={<FormattedMessage id="i18n_common_first_name" />}
+                    maxLength={50}
+                    isEditing={!isInDetailMode}
+                    isRequired={true} />
+
+                <MyInput
+                    id={this.id + "_apellidos"}
+                    entity={this.selectedItem}
+                    valueName="apellidos"
+                    label={<FormattedMessage id="i18n_common_last_name" />}
+                    maxLength={80}
+                    isEditing={!isInDetailMode}
+                    isRequired={false} />
+
+                <SuggestionBox
+                    id={this.id + "_tipoCliente"}
+                    entity={this.selectedItem.tipoCliente}
+                    valueName="codigo"
+                    suggestAction={(inputText) => this.suggestTiposCliente(inputText)}
+                    label={<FormattedMessage id="i18n_clientes_customer_type" />}
+                    maxLength={4}
+                    isEditing={!isInDetailMode}
+                    isRequired={true} />
+            </div>
+        );
     }
 
 }

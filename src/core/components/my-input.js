@@ -1,7 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
 // import { focusNextElement } from "../utils/helper-utils";
-import { v4 as uuidv4 } from 'uuid';
 
 import './styles/inputs.css';
 
@@ -11,6 +10,7 @@ import './styles/inputs.css';
 export default class MyInput extends React.Component {
 
     static propTypes = {
+        id: PropTypes.string.isRequired,
         entity: PropTypes.object.isRequired,
         valueName: PropTypes.string.isRequired,
         label: PropTypes.object.isRequired,
@@ -20,15 +20,14 @@ export default class MyInput extends React.Component {
         isEditing: PropTypes.bool,
         isRequired: PropTypes.bool,
         validation: PropTypes.func,
+        subsequentAction: PropTypes.func,
     };
 
     constructor(props) {
         super(props);
-        this.id = uuidv4();
-
         // Compruebo si ha llegado algún valor de la propia entidad, sino lo inicializo en string vacío. Si no lo hago se produce un error en javascript.
-        var value = props.entity[props.valueName] !== null && props.entity[props.valueName] !== undefined ? props.entity[props.valueName] : "";
-        var isRequired = props.isRequired !== undefined && props.isRequired !== null ? props.isRequired : false;
+        const value = props.entity[props.valueName] !== null && props.entity[props.valueName] !== undefined ? props.entity[props.valueName] : "";
+        const isRequired = props.isRequired !== undefined && props.isRequired !== null ? props.isRequired : false;
 
         this.state = {
             // Necesito almacenar el valor del input como tal en el estado para que lo mantenga ante los distintos cambios, de tal modo que el input esté controlado
@@ -69,7 +68,7 @@ export default class MyInput extends React.Component {
         // previenen el click del botón si se hace click sin salir del input, es decir, se lanza el onblur del input pero luego no hace click.
         var isValid = null;
 
-        const { validation } = this.props;
+        const { validation, subsequentAction } = this.props;
 
         // Validador de código
         if (validation !== undefined && validation !== null) {
@@ -77,9 +76,16 @@ export default class MyInput extends React.Component {
              isValid = await validation();
         }
 
+        // Si ha llegado hasta aquí y hay acción posterior (y no ha habido validación o ésta ha sido correcta), ejecutar la acción
+        var actionHasHappened = null;
+        if ((isValid === null || isValid) && subsequentAction !== undefined && subsequentAction !== null) {
+            await subsequentAction();
+            actionHasHappened = true;
+        }
+
         // Si se ha hecho click en un botón sin haber tabulado, se lanzará el evento onblur pero prevendrá el click del botón. Comprobando el relatedTarget del evento 
         // podemos forzar el click. Sólo pasamos por aquí si la validación ha sido ok.
-        if (isValid && event !== undefined && event !== null) {
+        if ((isValid || actionHasHappened) && event !== undefined && event !== null) {
             const { relatedTarget } = event;
 
             if (relatedTarget && ('submit' === relatedTarget.getAttribute('type') || 'button' === relatedTarget.getAttribute('type'))) {
@@ -105,8 +111,7 @@ export default class MyInput extends React.Component {
 
     render() {
         // Obtener datos de las propiedades
-        const id = this.id;
-        const { label, minLength } = this.props;
+        const { label, minLength, id } = this.props;
         const { isEditing, isRequired } = this.state;
 
         // Si no se ha especificado máximo de caracteres, máximo 50

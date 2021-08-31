@@ -41,12 +41,17 @@ export default class ViewController extends CoreController {
         /**
          * Nombre del campo id.
          */
-         this.id_field_name = 'id';
+        this.id_field_name = 'id';
 
-         /**
-          * Dirección de la API.
-          */
-         this.url = '';
+        /**
+         * Dirección de la API.
+         */
+        this.url = '';
+
+        /**
+         * Id del controller.
+         */
+        this.id = this.generateUuid();
 
         // Establecer estado para atributos de lectura/escritura.
         this.state = {
@@ -80,6 +85,15 @@ export default class ViewController extends CoreController {
     }
 
     /**
+     * Genera un uuid aleatorio.
+     * 
+     * @returns {string} Uuid aleatorio.
+     */
+    generateUuid() {
+        return uuidv4();
+    }
+
+    /**
      * Añade un nuevo modal a la lista del controlador. Actualiza el estado del controlador de vista.
      * 
      * @param {string} title 
@@ -90,7 +104,7 @@ export default class ViewController extends CoreController {
         const modalList = this.state.modalList.slice();
 
         // Id del modal
-        const modalUuid = "modalPanel$$" + uuidv4();
+        const modalUuid = "modalPanel$$" + this.generateUuid();
 
         // Contenedor padre: será el panel de la pestaña del viewcontroller si es el primer modal de la lista, 
         // o bien el panel modal del último elemento si la lista ya tiene contenido
@@ -161,11 +175,18 @@ export default class ViewController extends CoreController {
     }
 
     /**
+     * Prepara una nueva instancia del elemento seleccionado para la creación.
+     */
+    prepareCreate() {
+        this.selectedItem = new this.entity_class();
+    }
+
+    /**
      * Navega a la vista de creación.
      */
     goToCreateView() {
         // Instanciar nuevo elemento seleccionado según la clase asociada al controlador.
-        this.selectedItem = new this.entity_class();
+        this.prepareCreate();
 
         this.setState({
             viewState: ViewStates.EDIT
