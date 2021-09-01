@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
 
 import './styles/inputs.css';
@@ -49,6 +49,49 @@ export default function SuggestionBox(props) {
         setIsEditing(props.isEditing);
     }, [props.isEditing]);
 
+    // Para detectar el click fuera del componente
+    // useRef crea un objeto ref mutable que se mantendrá con persistente durante todo el ciclo de vida del componente. 
+    // useRef es como una “caja” que se puede mantener en una variable mutable en su propiedad .current. Lo utilizaré sobre la división contenedora de input y tabla de resultados.
+    const wrapperRef = useRef(null);
+    const [isResultTableVisible, setIsResultTableVisible] = useState(false);
+
+    // Utilizar un efecto para añadir un eventListener al hacer click
+    useEffect(() => {
+        document.addEventListener("click", handleClickOutside, false);
+        // Eliminar el listener después para que no lo lance siempre que se haga click fuera del componente: sólo debe hacerlo la primera vez tras hacer click fuera del componente
+        return () => {
+            document.removeEventListener("click", handleClickOutside, false);
+        };
+    });
+
+    // Función para resetear la entidad si se ha click fuera de la división sin haber seleccionado objeto
+    const resetEntity = () => {
+        // Si no se ha seleccionado elemento (es decir, el id es null), limpiar el componente
+        if (entity[props.idFieldName] === null) {
+            // Borrar el código seleccionado de la entidad y settearla en el componente
+            entity[props.valueName] = null;
+            setEntity(entity);
+            // Vaciar input
+            setValue("");
+            setIsResultTableVisible(false);
+        }
+    }
+
+    // Función para manejar el click fuera del componente
+    const handleClickOutside = event => {
+        if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+            setIsResultTableVisible(false);
+            resetEntity();
+        }
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === "Tab") {
+            // e.preventDefault();
+            resetEntity();
+        }
+    }
+
     // Obtener datos de las propiedades
     const { label, minLength, id } = props;
 
@@ -79,6 +122,8 @@ export default function SuggestionBox(props) {
         // Si ha introducido más de un caracter, comenzar acción de suggestion
         if (newValue !== undefined && newValue !== null && newValue.length > 1) {
             setResult(await props.suggestAction(newValue));
+            // Visualizar la tabla de resultados
+            setIsResultTableVisible(true);
         }
     }
 
@@ -93,12 +138,14 @@ export default function SuggestionBox(props) {
         entity[props.valueName] = item[props.valueName];
         entity[props.idFieldName] = item[props.idFieldName];
         setEntity(entity);
+        // Ocultar tabla de resultados
+        setIsResultTableVisible(false);
     }
 
-    // Preparar tabla de sugerencias si hay resultado
-    const suggestionTable = result !== undefined && result !== null && result.length > 0 ? makeTableForSuggestionBox(result, selectItem) : null;
+    // Preparar tabla de sugerencias si hay resultado y si es visible (es decir, no se ha "salido" del componente haciendo click fuera)
+    const suggestionTable = isResultTableVisible && (result !== undefined && result !== null && result.length > 0 ? makeTableForSuggestionBox(result, selectItem) : null);
 
-    return (<div className="input-panel">
+    return (<div className="input-panel" ref={wrapperRef}>
 
         <label htmlFor={id} className="my-label">{label}</label>
 
@@ -107,6 +154,7 @@ export default function SuggestionBox(props) {
             <input
                 id={id}
                 disabled={!isEditing ? 'disabled' : ''}
+                onKeyDown={handleKeyDown}
                 type="text"
                 className="my-input"
                 onChange={handleChange}
