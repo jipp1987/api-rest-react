@@ -8,12 +8,13 @@ import './styles/inputs.css';
  * 
  * @param {list} result Lista de objetos genéricos.
  * @param {function} selectAction Acción de selección.
+ * @param {string} idFieldName Nombre del campo id para descartar de las columnas mostradas.
  * @returns {table} Devuelve una tabla html. 
  */
-function makeTableForSuggestionBox(result, selectAction) {
+function makeTableForSuggestionBox(result, selectAction, idFieldName) {
     const printColumns = (obj) => {
         return Object.keys(obj).map(function (key) {
-            return <td key={uuidv4()}>{obj[key]}</td>
+            return key !== idFieldName ? <td key={uuidv4()}>{obj[key]}</td> : null;
         })
     };
 
@@ -24,7 +25,7 @@ function makeTableForSuggestionBox(result, selectAction) {
     };
 
     return (
-        <table>
+        <table className="suggestion-box">
             <tbody>
                 {printRows(result)}
             </tbody>
@@ -64,7 +65,9 @@ export default function SuggestionBox(props) {
         };
     });
 
-    // Función para resetear la entidad si se ha click fuera de la división sin haber seleccionado objeto
+    /**
+     * Función para resetear la entidad si se ha click fuera de la división sin haber seleccionado objeto. 
+     * */
     const resetEntity = () => {
         // Si no se ha seleccionado elemento (es decir, el id es null), limpiar el componente
         if (entity[props.idFieldName] === null) {
@@ -143,9 +146,11 @@ export default function SuggestionBox(props) {
     }
 
     // Preparar tabla de sugerencias si hay resultado y si es visible (es decir, no se ha "salido" del componente haciendo click fuera)
-    const suggestionTable = isResultTableVisible && (result !== undefined && result !== null && result.length > 0 ? makeTableForSuggestionBox(result, selectItem) : null);
+    const suggestionTable = isResultTableVisible && (result !== undefined && result !== null && result.length > 0 ?
+        makeTableForSuggestionBox(result, selectItem, props.idFieldName) : null);
 
-    return (<div className="input-panel" ref={wrapperRef}>
+    // Tiene posición relativa porque la tabla interior de suggestion-box debe tenerla absoluta para así solapar cualquier elemento que tenga debajo. 
+    return (<div className="input-panel" style={{ position: 'relative' }} ref={wrapperRef}>
 
         <label htmlFor={id} className="my-label">{label}</label>
 

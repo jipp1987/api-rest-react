@@ -104,24 +104,24 @@ export default class ClienteView extends ViewController {
             // Consultar a la api de tipos de cliente
             const url = properties.apiUrl + '/api/TipoCliente';
 
-            
+
             // Buscar por código y descripción
             const filters = [
                 new FilterClause("codigo", FilterTypes.STARTS_WITH, inputText),
                 new FilterClause("descripcion", FilterTypes.STARTS_WITH, inputText, null, OperatorTypes.OR),
             ];
-            
+
             // Campos: el id tengo que pasarlo siempre
             const fields = [
                 new FieldClause("tipo_cliente_id"),
                 new FieldClause("codigo"),
                 new FieldClause("descripcion"),
             ];
-            
+
             // TODO Esto hay que revisarlo: tengo que pasar listados vacíos porque si paso null me coge los listados de cláusulas del propio controlador. 
             // Buscar una forma de poder pasar null o nada mejor.
             const result = await this.makeRequestToAPI(url, this.getRequestOptions(ViewStates.LIST, fields, [], filters, [], []), false);
-            
+
             // Determinar el resultado
             if (result !== undefined && result !== null) {
                 // Es una lista de diccionarios: aquellas claves que no formen parte de la lista de fields, las elimino
@@ -131,18 +131,18 @@ export default class ClienteView extends ViewController {
                     // Eliminar las claves que no formen parte del listado de campos seleccionado
                     var selected_fields = [];
                     var not_selected_fields = [];
-                    
+
                     // Array de campos seleccionados en los fieldclauses
                     fields.forEach(field => selected_fields.push(field.field_name));
-                    
+
                     // Como todos los elementos del resultado tienen las mismas claves, utilizo el primer elemento para obtener aquellas claves que no forman parte
                     // del conjunto de campos seleccionados
-                    Object.keys(list[0]).forEach(function(k) {
+                    Object.keys(list[0]).forEach(function (k) {
                         if (!selected_fields.includes(k)) {
                             not_selected_fields.push(k);
                         }
                     });
-    
+
                     // Recorro los diccionarios y elimino esas claves
                     list.forEach(dict => not_selected_fields.forEach(e => delete dict[e]));
                 } else {
@@ -164,6 +164,7 @@ export default class ClienteView extends ViewController {
     renderDetailEditForm(isInDetailMode = false) {
         return (
             <div>
+
                 <MyInput
                     id={this.id + "_codigo"}
                     entity={this.selectedItem}
@@ -195,13 +196,14 @@ export default class ClienteView extends ViewController {
                 <SuggestionBox
                     id={this.id + "_tipoCliente"}
                     entity={this.selectedItem.tipoCliente}
-                    valueName="codigo"
-                    idFieldName="tipo_cliente_id"
+                    valueName={this.selectedItem.tipoCliente.constructor.getCodigoFieldName()}
+                    idFieldName={this.selectedItem.tipoCliente.constructor.getIdFieldName()}
                     suggestAction={(inputText) => this.suggestTiposCliente(inputText)}
                     label={<FormattedMessage id="i18n_clientes_customer_type" />}
                     maxLength={4}
                     isEditing={!isInDetailMode}
                     isRequired={true} />
+
             </div>
         );
     }
