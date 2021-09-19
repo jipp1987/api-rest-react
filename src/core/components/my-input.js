@@ -135,6 +135,7 @@ export default class MyInput extends React.Component {
                         disabled={!isEditing ? 'disabled' : ''}
                         type="text"
                         className="my-input"
+                        onKeyPress={(e) => { e.key === 'Enter' && e.preventDefault(); }}
                         onChange={(e) => this.handleChange(e)}
                         onBlur={(e) => this.onBlur(e)}
                         size={size}

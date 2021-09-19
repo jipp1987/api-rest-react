@@ -27,7 +27,7 @@
 }
 
 .suggestion-box {
-    /* border-collapse: collapse; */
+    border-collapse: collapse;
     width: 100%;
     border: 1px solid rgb(150, 147, 147);
     position: absolute;
@@ -38,11 +38,15 @@
 }
 
 /* Para que no haga wrapping sobre el contenido de las celdas. */
+
 .suggestion-box td {
     white-space: nowrap;
+    padding: 2px;
+    border: 1px solid rgb(150, 147, 147);
 }
 
-.suggestion-box tr:hover {
-    background-color: rgb(199, 194, 194);
+/* Esto sería el hover de las filas, pero lo dejo aparte para poder utilizar los cursores para navegar. */
+.suggestion-box-selected-row {
+    background-color: rgb(199, 194, 194) !important;
     cursor: pointer;
 }
