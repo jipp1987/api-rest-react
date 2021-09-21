@@ -54,17 +54,17 @@ function makeTableForSuggestionBox(parentId, result, selectAction, idFieldName) 
 function find_suggestion_box_with_its_rows(parentId) {
     // Buscar tabla de sugerencias con sus filas
     var suggestion_table = document.getElementById(parentId + SELECTED_TABLE_ID_SUFIX);
-    
+
     if (suggestion_table === undefined || suggestion_table === null) {
         return null;
     }
-    
+
     var rows = null;
-    
+
     if (suggestion_table !== null) {
         rows = suggestion_table.querySelectorAll("tr");
     }
-    
+
     // Comprobar que haya filas que seleccionar
     if (rows === undefined || rows === null || rows.length <= 0) {
         return null;
@@ -82,14 +82,14 @@ function find_suggestion_box_with_its_rows(parentId) {
 function forceOnHover(id, parentId) {
     // Buscar tabla de sugerencias con sus filas
     const suggestion_box_with_rows = find_suggestion_box_with_its_rows(parentId);
-    
+
     if (suggestion_box_with_rows === null) {
         return;
     }
 
     const suggestion_table = suggestion_box_with_rows[0];
     const rows = suggestion_box_with_rows[1];
-    
+
     // Comprobar que haya filas que seleccionar
     if (rows !== undefined && rows !== null && rows.length > 0) {
         // Quitar clase de selección a fila seleccionada previamente
@@ -183,6 +183,8 @@ export default function SuggestionBox(props) {
     const [isEditing, setIsEditing] = useState(props.isEditing);
     const [result, setResult] = useState(null);
 
+    const [focusOn, setFocusOn] = useState(false);
+
     // Obtener datos de las propiedades
     const { label, minLength, id } = props;
 
@@ -201,6 +203,9 @@ export default function SuggestionBox(props) {
     const wrapperRef = useRef(null);
     const [isResultTableVisible, setIsResultTableVisible] = useState(false);
 
+    // Otra referencia, ésta para el propio input
+    const inputRef = useRef(null);
+
     /**
      * Utilizar un efecto para añadir un eventListener al hacer click
      */
@@ -211,6 +216,18 @@ export default function SuggestionBox(props) {
             document.removeEventListener("click", handleClickOutside, false);
         };
     });
+
+    /**
+     * Efecto para hacer foco sobre el elemento a partir de atributo de estado, focusOn.
+     */
+    useEffect(() => {
+        if (focusOn && inputRef.current) {
+            inputRef.current.focus();
+            inputRef.current.select();
+            // Importante "apagar" el foco después de seleccionar el elemento.
+            setFocusOn(false);
+        }
+    }, [focusOn]);
 
     /**
      * Función para resetear la entidad si se ha click fuera de la división sin haber seleccionado objeto. 
@@ -310,13 +327,20 @@ export default function SuggestionBox(props) {
         entity[props.valueName] = item[props.valueName];
         entity[props.idFieldName] = item[props.idFieldName];
         setEntity(entity);
+
         // Ocultar tabla de resultados
         setIsResultTableVisible(false);
+
+        // a partir de este atributo de estado se ejecutará un efecto que establecerá el foco sobre el componente en el próximo render
+        setFocusOn(true);
     }
 
     // Preparar tabla de sugerencias si hay resultado y si es visible (es decir, no se ha "salido" del componente haciendo click fuera)
     const suggestionTable = isResultTableVisible && (result !== undefined && result !== null && result.length > 0 ?
         makeTableForSuggestionBox(id, result, selectItem, props.idFieldName) : null);
+
+    // Label de campo obligatorio
+    const requiredLabel = isRequired ? <span style={{ color: 'red', fontWeight: 'bold', float: 'left', marginLeft: '5px' }}>*</span> : null;
 
     // Tiene posición relativa porque la tabla interior de suggestion-box debe tenerla absoluta para así solapar cualquier elemento que tenga debajo. 
     return (<div className="input-panel" style={{ position: 'relative' }} ref={wrapperRef}>
@@ -327,18 +351,20 @@ export default function SuggestionBox(props) {
 
             <input
                 id={id}
-                disabled={!isEditing ? 'disabled' : ''}
-                onKeyDown={handleKeyDown}
+                ref={inputRef}
+                style={{ float: 'left' }}
                 type="text"
                 className="my-input"
-                onChange={handleChange}
                 size={size}
                 maxLength={maxLength}
                 minLength={minLength}
                 value={value}
-                style={{ float: 'left' }}
-                required={isRequired ? 'required' : ''} />
+                disabled={!isEditing ? 'disabled' : ''}
+                required={isRequired ? 'required' : ''}
+                onKeyDown={handleKeyDown}
+                onChange={handleChange} />
 
+            {requiredLabel}
 
         </div>
 
