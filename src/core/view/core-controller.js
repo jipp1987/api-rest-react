@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { FilterClause, FilterTypes } from '../../core/utils/dao-utils';
+import { FilterClause, FilterTypes, FieldClause, OperatorTypes } from '../../core/utils/dao-utils';
 import { ViewStates, SelectActions, ViewValidators } from "../utils/helper-utils";
 import { OrderByTypes, OrderByClause } from '../utils/dao-utils';
 import { APIActionCodes } from '../utils/helper-utils';
@@ -371,6 +371,78 @@ export default class CoreController extends React.Component {
         }
 
         return result;
+    }
+
+    // SUGGESTION
+    /**
+     * Método genérico para buscar resultados de un suggestion-box.
+     * 
+     * @param {string} url API a la que se va a hacer la consulta.
+     * @param {string} inputText Texto que se usará en los filtros por coincidencia.
+     * @param {list} filter_fields Lista de strings con nombre de campos de la entidad a partir de los cuáles elaborar un filtro "Empieza por..." encadenado por operadores OR.
+     * @param {list} select_fields Lista de strings con nombre de campos de la entidad que se desean mostrar en el listado de sugerencias.
+     * @param {string} id_field_name Nombre del campo id de la entidad.
+     * @returns {list} Devuelve una lista de resultados obtenidos de la api, o bien una lista vacía si no encuentra nada.
+     */
+     async suggestEntities(url, inputText, filter_fields, select_fields, id_field_name) {
+        var list = [];
+
+        if (inputText !== undefined && inputText !== null) {
+            // Inicializo la lista de filtros y compruebo si es el primero para no añadirle un operador OR.
+            const filters = [];
+            
+            for (var i = 0; i < filter_fields.length; i++) {
+                if (i === 0) {
+                    filters.push(new FilterClause(filter_fields[i], FilterTypes.STARTS_WITH, inputText));
+                } else {
+                    filters.push(new FilterClause(filter_fields[i], FilterTypes.STARTS_WITH, inputText, null, OperatorTypes.OR));
+                }
+            }
+
+            // Campos: el id tengo que pasarlo siempre
+            const fields = [
+                new FieldClause(id_field_name),
+            ];
+
+            // Añadir resto de campos
+            for (let field of select_fields) {
+                fields.push(new FieldClause(field));
+            }
+
+            // TODO Esto hay que revisarlo: tengo que pasar listados vacíos porque si paso null me coge los listados de cláusulas del propio controlador. 
+            // Buscar una forma de poder pasar null o nada mejor.
+            const result = await this.makeRequestToAPI(url, this.getRequestOptions(ViewStates.LIST, fields, [], filters, [], []), false);
+
+            // Determinar el resultado
+            if (result !== undefined && result !== null) {
+                // Es una lista de diccionarios: aquellas claves que no formen parte de la lista de fields, las elimino
+                list = result['response_object'];
+
+                if (list !== undefined && list !== null && list.length > 0) {
+                    // Eliminar las claves que no formen parte del listado de campos seleccionado
+                    var selected_fields = [];
+                    var not_selected_fields = [];
+
+                    // Array de campos seleccionados en los fieldclauses
+                    fields.forEach(field => selected_fields.push(field.field_name));
+
+                    // Como todos los elementos del resultado tienen las mismas claves, utilizo el primer elemento para obtener aquellas claves que no forman parte
+                    // del conjunto de campos seleccionados
+                    Object.keys(list[0]).forEach(function (k) {
+                        if (!selected_fields.includes(k)) {
+                            not_selected_fields.push(k);
+                        }
+                    });
+
+                    // Recorro los diccionarios y elimino esas claves
+                    list.forEach(dict => not_selected_fields.forEach(e => delete dict[e]));
+                } else {
+                    list = [];
+                }
+            }
+        }
+
+        return list;
     }
 
 
