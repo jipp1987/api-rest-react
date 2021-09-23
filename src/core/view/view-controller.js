@@ -85,6 +85,21 @@ export default class ViewController extends CoreController {
     }
 
     /**
+     * Sobrescritura de componentDidUpdate para poner el foco en el primer input de texto posible. Debe hacerse aquí, no se puede poner en el render 
+     * porque querySelector sólo funciona en componentes ya montados en el DOM y por tanto sólo pueden llamarse en funciones del ciclo de vida del componente.
+     */
+    componentDidUpdate() {
+        // Buscar todos los inputs de tipo texto no deshabilitados
+        const focusable = document.getElementById(this.props.parentContainer).querySelectorAll('input[type="text"]:not(:disabled):not([readonly]):not([type=hidden]');
+        
+        // Establecer el foco en el primero que haya encontrado.
+        if (focusable !== undefined && focusable !== null && focusable.length > 0) {
+            focusable[0].focus();
+            focusable[0].select();
+        }
+    }
+
+    /**
      * Genera un uuid aleatorio.
      * 
      * @returns {string} Uuid aleatorio.

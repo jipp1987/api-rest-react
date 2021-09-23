@@ -70,7 +70,7 @@ function find_suggestion_box_with_its_rows(parentId) {
         return null;
     }
 
-    return [suggestion_table, rows];
+    return { suggestion_table: suggestion_table, rows: rows };
 }
 
 /**
@@ -87,8 +87,8 @@ function forceOnHover(id, parentId) {
         return;
     }
 
-    const suggestion_table = suggestion_box_with_rows[0];
-    const rows = suggestion_box_with_rows[1];
+    const suggestion_table = suggestion_box_with_rows.suggestion_table;
+    const rows = suggestion_box_with_rows.rows;
 
     // Comprobar que haya filas que seleccionar
     if (rows !== undefined && rows !== null && rows.length > 0) {
@@ -120,7 +120,7 @@ function checkKey(e, parentId) {
     }
 
     // const suggestion_table = suggestion_box_with_rows[0];
-    const rows = suggestion_box_with_rows[1];
+    const rows = suggestion_box_with_rows.rows;
 
     const start = rows[0];
     const end = rows[rows.length - 1];
