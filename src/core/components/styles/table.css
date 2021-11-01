@@ -22,6 +22,18 @@ tr:nth-child(even) {
 
 /* BOTONES */
 
+.action-column-div {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    /*justify-content: center;*/
+}
+
+/* Margen izquierdo a cualquier contenedor de botones de la columna de acciones excepto el primero. */
+.action-column-div div:not(:first-of-type) {
+    margin-left: 4px;
+}
+
 /* Botón de orden de filas. */
 
 .order-button {

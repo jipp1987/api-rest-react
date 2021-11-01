@@ -1,3 +1,5 @@
+import React, { Suspense } from 'react';
+import { v4 as uuidv4 } from 'uuid';
 import HeaderHelper from '../../core/view/header-helper';
 import Cliente from '../model/cliente';
 import { JoinTypes, JoinClause, FieldClause } from '../../core/utils/dao-utils';
@@ -91,6 +93,25 @@ export default class ClienteView extends ViewController {
     }
 
     /**
+     * Función de preparado de borrado de elementos de la tabla.
+     */
+    openTipoClienteModal = () => {
+        // Le añado un nuevo modal
+        const LazyComponent = React.lazy(() => import('./tipo-cliente-view'));
+        const modalId = uuidv4();
+
+        const modalContent = <div id={'modalDiv$$' + modalId}>
+            <Suspense fallback={<div>Loading...</div>}>
+                <LazyComponent key={modalId} tab={this.state.tab} parentContainer={'modalDiv$$' + modalId} />
+            </Suspense>
+        </div>;
+
+        // Añadir modal y actualizar estado
+        this.addModal("i18n_tipos_cliente_title", modalContent);
+    }
+
+
+    /**
     * Implementación de renderizado de formulario de edición y detalle. Pensado para implementar.
     * 
     * @param {boolean} isInDetailMode Si true se mostrarán todos los campos deshabilitados.
@@ -139,7 +160,8 @@ export default class ClienteView extends ViewController {
                     label={<FormattedMessage id="i18n_clientes_customer_type" />}
                     maxLength={4}
                     isEditing={!isInDetailMode}
-                    isRequired={true} />
+                    isRequired={true}
+                    findAction={() => this.openTipoClienteModal()} />
 
             </div>
         );

@@ -91,7 +91,7 @@ export default class ViewController extends CoreController {
     componentDidUpdate() {
         // Buscar todos los inputs de tipo texto no deshabilitados
         const focusable = document.getElementById(this.props.parentContainer).querySelectorAll('input[type="text"]:not(:disabled):not([readonly]):not([type=hidden]');
-        
+
         // Establecer el foco en el primero que haya encontrado.
         if (focusable !== undefined && focusable !== null && focusable.length > 0) {
             focusable[0].focus();
@@ -190,6 +190,34 @@ export default class ViewController extends CoreController {
     }
 
     /**
+     * Selecciona un ítem para el detalle.
+     * 
+     * @param {entity_class} elementToSelect 
+     */
+    prepareDetail = (elementToSelect) => {
+        this.selectedItem = elementToSelect;
+
+        // Cambiar estado.
+        this.setState({
+            viewState: ViewStates.DETAIL
+        });
+    }
+
+    /**
+     * Selecciona un ítem para la edición.
+     * 
+     * @param {entity_class} elementToSelect 
+     */
+    prepareEdit = (elementToSelect) => {
+        this.selectedItem = elementToSelect;
+
+        // Cambiar estado.
+        this.setState({
+            viewState: ViewStates.EDIT
+        });
+    }
+
+    /**
      * Prepara una nueva instancia del elemento seleccionado para la creación.
      */
     prepareCreate() {
@@ -269,7 +297,7 @@ export default class ViewController extends CoreController {
 
                 <DataTable ref={this.dataTable} headers={this.headers} data={items} id_field_name={this.id_field_name}
                     onHeaderOrderClick={(h) => this.add_order_by_header(h)} table_name={this.table_name}
-                    deleteAction={this.confirmDeleteItem} />
+                    deleteAction={this.confirmDeleteItem} selectAction={this.prepareDetail} editAction={this.prepareEdit} />
             </div>
         );
     }

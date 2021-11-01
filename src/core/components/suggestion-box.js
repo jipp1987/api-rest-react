@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { v4 as uuidv4 } from 'uuid';
+import ImageButton from './image-button';
 
 import './styles/inputs.css';
 
@@ -342,6 +343,9 @@ export default function SuggestionBox(props) {
     // Label de campo obligatorio
     const requiredLabel = isRequired ? <span style={{ color: 'red', fontWeight: 'bold', float: 'left', marginLeft: '5px' }}>*</span> : null;
 
+    // Botón de búsqueda
+    const findButton = <ImageButton style={{marginLeft: '5px'}} className='find-button' onClick={props.findAction} />
+
     // Tiene posición relativa porque la tabla interior de suggestion-box debe tenerla absoluta para así solapar cualquier elemento que tenga debajo. 
     return (<div className="input-panel" style={{ position: 'relative' }} ref={wrapperRef}>
 
@@ -365,6 +369,8 @@ export default function SuggestionBox(props) {
                 onChange={handleChange} />
 
             {requiredLabel}
+
+            {findButton}
 
         </div>
 

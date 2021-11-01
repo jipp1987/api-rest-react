@@ -265,7 +265,7 @@ export default class CoreController extends React.Component {
     };
 
     /**
-     * Función de de borrado de elementos.
+     * Función de borrado de elementos.
      * 
      * @param {entity_class} Elemento a eliminar. 
      */
@@ -282,6 +282,25 @@ export default class CoreController extends React.Component {
                 this.fetchData();
             } else {
                 toast.error(result['response_object']);
+            }
+        });
+    }
+
+    /**
+     * Función de carga de elemento.
+     * 
+     * @param {entity_class} Elemento a seleccionar. 
+     */
+     loadItem = (elementToSelect) => {
+        this.selectedItem = elementToSelect;
+
+        this.makeRequestToAPI(null, this.getRequestOptions(ViewStates.DETAIL)).then((result) => {
+            // Si el resultado ha sido correcto es un código 200
+            if (result['status_code'] !== undefined && result['status_code'] !== null && result['status_code'] === 200) {
+                this.selectedItem = this.entity_class.from(result['response_object']);
+            } else {
+                toast.error(result['response_object']);
+                this.selectedItem = null;
             }
         });
     }
@@ -554,11 +573,20 @@ export default class CoreController extends React.Component {
     code_is_valid = async (item_to_check = null, field_code_name = null, additional_filters = null) => {
         item_to_check = item_to_check !== null ? item_to_check : this.selectedItem;
         field_code_name = field_code_name !== null ? field_code_name : this.entity_class.getCodigoFieldName();
-
+        
         const codigo = item_to_check[field_code_name];
-
+        
         // Filtrar por código de tipo de cliente.
         const filters = [new FilterClause(field_code_name, FilterTypes.EQUALS, codigo)];
+        
+        // Necesito el id por si fuera una actualización, para que no valide el código sobre sí mismo.
+        const field_id_name = this.entity_class.getIdFieldName();
+        const id = item_to_check[field_id_name] !== undefined && item_to_check[field_id_name] !== null ? item_to_check[field_id_name] : null;
+        
+        if (id !== null) {
+            // Si tiene id, añadir un filtro para excluir el recuento sobre sí mismo
+            filters.push(new FilterClause(field_id_name, FilterTypes.NOT_EQUALS, id));
+        }
 
         // Añadir los filtros adicionales si los hubiera
         if (additional_filters !== null && additional_filters.length > 0) {
@@ -567,6 +595,7 @@ export default class CoreController extends React.Component {
 
         // Consultar con la API si ya existe un registro en la tabla con el código introducido. Importante devolver la promesa para recoger el resultado en la función validate.
         const result = await this.makeRequestToAPI(null, this.getRequestOptions(ViewStates.VALIDATE, null, null, filters, null, null, SelectActions.COUNT));
+
         // Determinar el resultado
         if (result !== undefined && result !== null) {
             if (result['success'] === true) {

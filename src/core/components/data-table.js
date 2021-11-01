@@ -50,7 +50,11 @@ class DataTable extends Component {
 
         // Columna de acciones
         const actionColumn = <td key={uuid + ":" + table_name + ":column:actions:" + d.uuid} style={{width: '10px'}}>
-            <ImageButton className='delete' onClick={() => this.props.deleteAction(d)} />
+            <div className="action-column-div">
+                <ImageButton className='select-button' onClick={() => this.props.selectAction(d)} />
+                <ImageButton className='edit-button' onClick={() => this.props.editAction(d)} />
+                <ImageButton className='delete' onClick={() => this.props.deleteAction(d)} />
+            </div>
         </td>;
 
         // Columnas a partir de los atributos del objeto

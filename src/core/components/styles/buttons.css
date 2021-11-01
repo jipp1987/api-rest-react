@@ -80,3 +80,15 @@
 .delete {
     background: url("../../resources/delete.jpg") no-repeat;
 }
+
+.find-button {
+    background: url("../../resources/find.png") no-repeat;
+}
+
+.select-button {
+    background: url("../../resources/select.png") no-repeat;
+}
+
+.edit-button {
+    background: url("../../resources/edit.png") no-repeat;
+}
