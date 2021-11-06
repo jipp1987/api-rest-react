@@ -121,11 +121,12 @@ function forceOnBlur() {
 class ModalHelper {
 
     // CONTRUCTOR
-    constructor(title, id, parentContainer, content) {
+    constructor(title, id, parentContainer, content, modal_width) {
         this.title = title;
         this.id = id;
         this.parentContainer = parentContainer;
         this.content = content;
+        this.modal_width = modal_width;
     }
 
 }

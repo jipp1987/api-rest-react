@@ -53,6 +53,11 @@ export default class ViewController extends CoreController {
          */
         this.id = this.generateUuid();
 
+        /**
+         * Es un controlador modal.
+         */
+        this.is_modal = props.is_modal !== undefined && props.is_modal !== null ? props.is_modal : false;
+
         // Establecer estado para atributos de lectura/escritura.
         this.state = {
             /**
@@ -90,12 +95,23 @@ export default class ViewController extends CoreController {
      */
     componentDidUpdate() {
         // Buscar todos los inputs de tipo texto no deshabilitados
-        const focusable = document.getElementById(this.props.parentContainer).querySelectorAll('input[type="text"]:not(:disabled):not([readonly]):not([type=hidden]');
+        let focusable;
+        
+        // Si es modal y no encuentra input text, que ponga el foco incluso en los botones no deshabilitados
+        if (this.is_modal === true) {
+            focusable = document.getElementById(this.props.parentContainer).querySelectorAll('button:not(:disabled), input[type="text"]:not(:disabled):not([readonly]):not([type=hidden]');
+        } else {
+            focusable = document.getElementById(this.props.parentContainer).querySelectorAll('input[type="text"]:not(:disabled):not([readonly]):not([type=hidden]');
+        }
 
         // Establecer el foco en el primero que haya encontrado.
         if (focusable !== undefined && focusable !== null && focusable.length > 0) {
             focusable[0].focus();
-            focusable[0].select();
+
+            // Que sólo haga select si es un input text
+            if (focusable[0].getAttribute !== undefined && focusable[0].getAttribute('type') === 'TEXT') {
+                focusable[0].select();
+            }
         }
     }
 
@@ -113,20 +129,24 @@ export default class ViewController extends CoreController {
      * 
      * @param {string} title 
      * @param {any} content 
+     * @param {string} width 
      */
-    addModal = (title, content) => {
+    addModal = (title, content, width) => {
         // Copio la lista de modales
         const modalList = this.state.modalList.slice();
 
         // Id del modal
         const modalUuid = "modalPanel$$" + this.generateUuid();
 
+        // Ancho del modal
+        const modal_width = width !== undefined && width !== null ? width : '500px';
+
         // Contenedor padre: será el panel de la pestaña del viewcontroller si es el primer modal de la lista, 
         // o bien el panel modal del último elemento si la lista ya tiene contenido
         const parentContainer = modalList.length === 0 ? this.props.parentContainer : modalList[modalList.length - 1].id;
 
         // Añadir a la lista de modales
-        modalList.push(new ModalHelper(title, modalUuid, parentContainer, content));
+        modalList.push(new ModalHelper(title, modalUuid, parentContainer, content, modal_width));
 
         // Actualizo el estado del controlador
         this.setState({ modalList: modalList });
@@ -147,6 +167,19 @@ export default class ViewController extends CoreController {
 
         // Actualizo el estado del controlador
         this.setState({ modalList: modalList });
+    }
+
+    /**
+     * Cierra el último modal abierto de la lista del controlador.
+     * 
+     * @returns 
+     */
+    removeLastModal = () => {
+        if (this.state.modalList !== undefined && this.state.modalList !== null && this.state.modalList.length > 0) {
+            this.removeModal(this.state.modalList.length - 1);
+        } else {
+            return;
+        }
     }
 
     /**
@@ -289,6 +322,14 @@ export default class ViewController extends CoreController {
         // TOOLBAR
         const toolbar = this.renderToolbarList();
 
+        // Las acciones dependen de si el controlador es modal o no
+        let select_action;
+        if (this.is_modal === true) {
+            select_action = this.props.select_action;
+        } else {
+            select_action = this.prepareDetail;
+        }
+
         return (
             <div>
                 <h3 style={{ marginBottom: '15px', textTransform: 'uppercase' }}><FormattedMessage id={view_title} /></h3>
@@ -297,7 +338,7 @@ export default class ViewController extends CoreController {
 
                 <DataTable ref={this.dataTable} headers={this.headers} data={items} id_field_name={this.id_field_name}
                     onHeaderOrderClick={(h) => this.add_order_by_header(h)} table_name={this.table_name}
-                    deleteAction={this.confirmDeleteItem} selectAction={this.prepareDetail} editAction={this.prepareEdit} />
+                    deleteAction={this.confirmDeleteItem} selectAction={select_action} editAction={this.prepareEdit} />
             </div>
         );
     }
@@ -387,7 +428,7 @@ export default class ViewController extends CoreController {
                 {modalList.map((step, i) => {
                     return <Modal title={<FormattedMessage id={step.title} />}
                         id={step.id} key={step.id} index={i} onClose={() => this.removeModal(i)}
-                        parentContainer={step.parentContainer}>{step.content}</Modal>
+                        parentContainer={step.parentContainer} width={step.modal_width}>{step.content}</Modal>
                 })}
             </div>
         );

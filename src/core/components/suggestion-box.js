@@ -198,6 +198,11 @@ export default function SuggestionBox(props) {
         setIsEditing(props.isEditing);
     }, [props.isEditing]);
 
+    // Lo necesito para el rerender desde modal
+    useEffect(() => {
+         setValue(props.entity[props.valueName] !== null && props.entity[props.valueName] !== undefined ? props.entity[props.valueName] : "");
+    }, [props.entity, props.valueName]);
+
     // Para detectar el click fuera del componente
     // useRef crea un objeto ref mutable que se mantendrá con persistente durante todo el ciclo de vida del componente. 
     // useRef es como una “caja” que se puede mantener en una variable mutable en su propiedad .current. Lo utilizaré sobre la división contenedora de input y tabla de resultados.

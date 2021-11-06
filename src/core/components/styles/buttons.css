@@ -44,6 +44,11 @@
     align-items: center;
 }
 
+.custom-button:focus {
+    border: 2px solid black !important;
+    border-radius: 2px !important;
+}
+
 /* Estilo principal de la imagen. */
 .image-button {
     background-size: cover !important;
