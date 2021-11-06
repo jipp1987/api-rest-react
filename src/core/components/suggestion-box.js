@@ -198,7 +198,7 @@ export default function SuggestionBox(props) {
         setIsEditing(props.isEditing);
     }, [props.isEditing]);
 
-    // Lo necesito para el rerender desde modal
+    // Si cambia la entidad asociada, debe volver a renderizarse.
     useEffect(() => {
          setValue(props.entity[props.valueName] !== null && props.entity[props.valueName] !== undefined ? props.entity[props.valueName] : "");
     }, [props.entity, props.valueName]);

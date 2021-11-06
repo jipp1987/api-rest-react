@@ -58,6 +58,11 @@ export default class ViewController extends CoreController {
          */
         this.is_modal = props.is_modal !== undefined && props.is_modal !== null ? props.is_modal : false;
 
+        /**
+         * Elemento en el que se ha de hacer el último foco.
+         */
+        this.last_focus_element = null;
+
         // Establecer estado para atributos de lectura/escritura.
         this.state = {
             /**
@@ -96,23 +101,35 @@ export default class ViewController extends CoreController {
     componentDidUpdate() {
         // Buscar todos los inputs de tipo texto no deshabilitados
         let focusable;
+        let focusable_list;
         
         // Si es modal y no encuentra input text, que ponga el foco incluso en los botones no deshabilitados
-        if (this.is_modal === true) {
-            focusable = document.getElementById(this.props.parentContainer).querySelectorAll('button:not(:disabled), input[type="text"]:not(:disabled):not([readonly]):not([type=hidden]');
+        if (this.last_focus_element !== undefined && this.last_focus_element !== null) {
+            focusable = this.last_focus_element;
         } else {
-            focusable = document.getElementById(this.props.parentContainer).querySelectorAll('input[type="text"]:not(:disabled):not([readonly]):not([type=hidden]');
+            if (this.is_modal === true) {
+                focusable_list = document.getElementById(this.props.parentContainer).querySelectorAll('button:not(:disabled), input[type="text"]:not(:disabled):not([readonly]):not([type=hidden]');
+            } else {
+                focusable_list = document.getElementById(this.props.parentContainer).querySelectorAll('input[type="text"]:not(:disabled):not([readonly]):not([type=hidden]');
+            }
         }
 
         // Establecer el foco en el primero que haya encontrado.
-        if (focusable !== undefined && focusable !== null && focusable.length > 0) {
-            focusable[0].focus();
+        if (focusable_list !== undefined && focusable_list !== null && focusable_list.length > 0) {
+            focusable = focusable_list[0];
+        }
 
+        // Establecer el foco en el primero que haya encontrado.
+        if (focusable !== undefined && focusable !== null) {
+            focusable.focus();
             // Que sólo haga select si es un input text
-            if (focusable[0].getAttribute !== undefined && focusable[0].getAttribute('type') === 'TEXT') {
-                focusable[0].select();
+            if (focusable.getAttribute !== undefined && focusable.getAttribute('type') === 'text') {
+                focusable.select();
             }
         }
+
+        // Al final siempre vuelvo null el elemento de foco
+        this.last_focus_element = null;
     }
 
     /**
