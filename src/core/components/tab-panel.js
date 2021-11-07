@@ -35,7 +35,8 @@ export default class TabPanel extends Component {
         const v_activeTab = JSON.parse(localStorage.getItem("activeTab"));
         const v_data = JSON.parse(localStorage.getItem("data"));
 
-        this.setState({ activeTab: v_activeTab, data: v_data });
+        // OJO!!! Vigilar que los datos almacenados en localStorage no sean null, sino provocará errores.
+        this.setState({ activeTab: v_activeTab, data: (v_data !== null ? v_data : []) });
 
         // Añade listener para guardar el estado en localStorage cuando el usuario abandona o refresca la página
         window.addEventListener(
