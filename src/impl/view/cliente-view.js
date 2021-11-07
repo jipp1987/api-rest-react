@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React from 'react';
 import { v4 as uuidv4 } from 'uuid';
 import HeaderHelper from '../../core/view/header-helper';
 import Cliente from '../model/cliente';
@@ -103,24 +103,22 @@ export default class ClienteView extends ViewController {
         // Forzar foco sobre el input al finalizar la operación
         this.last_focus_element = document.getElementById(this.id + "_tipoCliente");
     }
-    
+
     // TODO Provisional.
     /**
      * Función de preparado de borrado de elementos de la tabla.
      */
     openTipoClienteModal = () => {
         // Le añado un nuevo modal
-        const LazyComponent = React.lazy(() => import('./tipo-cliente-view'));
+        const LazyComponent = require('./tipo-cliente-view').default;
 
         // OJO!!! NO confundir con el parentContainer del propio modal, que es el div sobre el que se va a abrir. Esto es el contenedor del controlador del modal,
         // y es un div interno del mismo. Lo necesito sobre todo para hacer focus y cosas así.
         const modalId = uuidv4();
 
-        const modalContent = <div id={'modalDiv$$' + modalId} style={{width: '100%'}}>
-            <Suspense fallback={<div>Loading...</div>}>
-                <LazyComponent key={modalId} tab={this.state.tab} parentContainer={'modalDiv$$' + modalId} is_modal={true}
-                    select_action={(d) =>{ this.setTipoCliente(d); this.removeLastModal(); } } />
-            </Suspense>
+        const modalContent = <div id={'modalDiv$$' + modalId} style={{ width: '100%' }}>
+            <LazyComponent key={modalId} tab={this.state.tab} parentContainer={'modalDiv$$' + modalId} is_modal={true}
+                select_action={(d) => { this.setTipoCliente(d); this.removeLastModal(); }} />
         </div>;
 
         // Añadir modal y actualizar estado

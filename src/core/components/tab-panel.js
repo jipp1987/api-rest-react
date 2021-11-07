@@ -1,4 +1,4 @@
-import React, { Component, Suspense } from 'react';
+import React, { Component } from 'react';
 import Tab from './tab';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -16,6 +16,46 @@ export default class TabPanel extends Component {
             activeTab: null,
             data: []
         };
+    }
+
+    /**
+     * Función para almecenar los datos del tabpanel en almacenamiento local.
+     */
+    saveStateToLocalStorage() {
+        const { activeTab, data } = this.state;
+
+        localStorage.setItem('activeTab', JSON.stringify(activeTab));
+        localStorage.setItem('data', JSON.stringify(data));
+    }
+
+    /**
+     * Sobrescritura de componentDidMount para recuperar los datos de localStorage al cargar la página. 
+     */
+    componentDidMount() {
+        const v_activeTab = JSON.parse(localStorage.getItem("activeTab"));
+        const v_data = JSON.parse(localStorage.getItem("data"));
+
+        this.setState({ activeTab: v_activeTab, data: v_data });
+
+        // Añade listener para guardar el estado en localStorage cuando el usuario abandona o refresca la página
+        window.addEventListener(
+            "beforeunload",
+            this.saveStateToLocalStorage.bind(this)
+        );
+    }
+
+    /**
+     * Sobrescritura de componentWillUnmount para guardar los datos en localStorage al recargar la página. 
+     */
+    componentWillUnmount() {
+        // Eliminar el listener definido en componentDidMount
+        window.removeEventListener(
+            "beforeunload",
+            this.saveStateToLocalStorage.bind(this)
+        );
+
+        // Guarda el estado
+        this.saveStateToLocalStorage();
     }
 
     /**
@@ -75,10 +115,11 @@ export default class TabPanel extends Component {
     handleAddTab(label, tab) {
         // Clono los datos del estado del TabPanel.
         let data = this.state.data.slice();
-        
+
         // Modifico el listado añadiendo un nuevo tab.
         data.push({
             label: label,
+            // content: tab,
             content: tab,
             id: uuidv4()
         })
@@ -125,9 +166,10 @@ export default class TabPanel extends Component {
                     <div className="tab-content">
 
                         {data.map((step, i) => {
-                            const LazyComponent = step.content;
+                            // Cargo el componente. Por algún motivo, si no pongo la ruta principal absoluta como string no me lo carga...
+                            const LazyComponent = require('src/' + step.content).default;
                             const id = step.id;
-                            
+
                             // Muy importante esto: para cambiar lo que ve el usuario se utiliza el estilo. Las pestañas no activas tiene display none; debe ser así 
                             // porque si por ejemplo devolviese null o undefined el componente se cargaría de nuevo cada vez que cambio de pestaña y por tanto no mantendría el 
                             // estado.
@@ -135,12 +177,11 @@ export default class TabPanel extends Component {
                             // así como problemas de rendimiento.
                             // Observar que la posición es relativa. Esto es así para que los modales (con posición absoluta) sólo afecten a la pestaña sobre la que están abiertos
                             // y no a toda la pantalla.
+
                             return (
-                                <div key={'tabDiv$$' + id} id={'tabDiv$$' + id} 
+                                <div key={'tabDiv$$' + id} id={'tabDiv$$' + id}
                                     style={{ display: i === activeTab ? 'block' : 'none', position: 'relative', height: '100%', overflow: 'auto' }}>
-                                    <Suspense fallback={<div>Loading...</div>}>
-                                        <LazyComponent key={id} tab={i} parentContainer={'tabDiv$$' + id} />
-                                    </Suspense>
+                                    <LazyComponent key={id} tab={i} parentContainer={'tabDiv$$' + id} />
                                 </div>
                             );
                         })}

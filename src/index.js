@@ -15,20 +15,15 @@ const messages = {
     'en': messages_en
 };
 
-// Declaración de imports lazy
-const ClienteView = React.lazy(() => import('./impl/view/cliente-view'));
-const TipoClienteView = React.lazy(() => import('./impl/view/tipo-cliente-view'));
-const UsuarioView = React.lazy(() => import('./impl/view/usuario-view'));
-
 /**
  * Mapa de vistas cargadas con react lazy. Se utilizan desde el panel de pestañas para cargar las vistas.
  */
 const VIEW_MAP = {
-    'ClienteView': ClienteView,
-    'TipoClienteView': TipoClienteView,
-    'UsuarioView': UsuarioView,
+    // OJO!!! Utilizar la ruta desde impl incluida, NO agregar src porque desde tabpanel no es capaz de cargarlos si lo pongo aquí, tiene que ser en ese componente...
+    'ClienteView': 'impl/view/cliente-view',
+    'TipoClienteView': 'impl/view/tipo-cliente-view',
+    'UsuarioView': 'impl/view/usuario-view',
 }
-
 
 /**
  * Clase menú.
