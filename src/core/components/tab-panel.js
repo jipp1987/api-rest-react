@@ -167,8 +167,8 @@ export default class TabPanel extends Component {
                     <div className="tab-content">
 
                         {data.map((step, i) => {
-                            // Cargo el componente. Por algún motivo, si no pongo la ruta principal absoluta como string no me lo carga...
-                            const LazyComponent = require('src/' + step.content).default;
+                            // Cargo el componente.
+                            const LazyComponent = this.props.get_component(step.content);
                             const id = step.id;
 
                             // Muy importante esto: para cambiar lo que ve el usuario se utiliza el estilo. Las pestañas no activas tiene display none; debe ser así 

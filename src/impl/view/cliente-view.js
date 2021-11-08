@@ -7,6 +7,7 @@ import ViewController from '../../core/view/view-controller';
 import { ViewValidators } from '../../core/utils/helper-utils';
 import { properties } from './../../properties';
 
+import { VIEW_MAP } from './view_map';
 import TipoCliente from '../model/tipo_cliente';
 import MyInput from '../../core/components/my-input';
 import SuggestionBox from '../../core/components/suggestion-box';
@@ -110,7 +111,7 @@ export default class ClienteView extends ViewController {
      */
     openTipoClienteModal = () => {
         // Le añado un nuevo modal
-        const LazyComponent = require('./tipo-cliente-view').default;
+        const LazyComponent = require('src/' + VIEW_MAP['TipoClienteView']).default;
 
         // OJO!!! NO confundir con el parentContainer del propio modal, que es el div sobre el que se va a abrir. Esto es el contenedor del controlador del modal,
         // y es un div interno del mismo. Lo necesito sobre todo para hacer focus y cosas así.

@@ -4,6 +4,8 @@ import { IntlProvider, FormattedMessage } from "react-intl";
 import TabPanel from './core/components/tab-panel';
 import { Toaster } from 'react-hot-toast';
 
+import { VIEW_MAP } from './impl/view/view_map';
+
 import messages_en from "./translations/en.json";
 import messages_es from "./translations/es.json";
 
@@ -14,16 +16,6 @@ const messages = {
     'es': messages_es,
     'en': messages_en
 };
-
-/**
- * Mapa de vistas cargadas con react lazy. Se utilizan desde el panel de pestañas para cargar las vistas.
- */
-const VIEW_MAP = {
-    // OJO!!! Utilizar la ruta desde impl incluida, NO agregar src porque desde tabpanel no es capaz de cargarlos si lo pongo aquí, tiene que ser en ese componente...
-    'ClienteView': 'impl/view/cliente-view',
-    'TipoClienteView': 'impl/view/tipo-cliente-view',
-    'UsuarioView': 'impl/view/usuario-view',
-}
 
 /**
  * Clase menú.
@@ -76,6 +68,17 @@ class App extends React.Component {
 
     addTabToTabPanel(l, m) {
         this.tabPanel.current.handleAddTab(l, VIEW_MAP[m]);
+    }
+
+    /**
+     * Función para obtener el componente de forma dinámica.
+     * 
+     * @param {string} route Ruta absoluta del componente SIN la url base ("src/" en este caso) incluida en la misma.  
+     * @returns LazyComponent
+     */
+    get_lazy_component(route) {
+        // Tengo que partir siempre de src, sino lo hago así por algún motivo la función no es capaz de encontrarlo.
+        return require("src/" + route).default;
     }
 
     render() {
@@ -132,7 +135,7 @@ class App extends React.Component {
                                         },
                                     }} />
 
-                                <TabPanel ref={this.tabPanel} />
+                                <TabPanel ref={this.tabPanel} get_component={(route) => this.get_lazy_component(route)} />
 
                             </div>
                         </div>
