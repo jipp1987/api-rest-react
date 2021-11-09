@@ -2,7 +2,10 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { v4 as uuidv4 } from 'uuid';
 
-import { ViewStates, ModalHelper } from "../utils/helper-utils";
+import {
+    ViewStates, ModalHelper, SAVE_DELIMITER, SAVE_SEPARATOR, TAB_SAVE_SEPARATOR,
+    MODAL_SAVE_SEPARATOR, PROPERTY_SAVE_SEPARATOR, STATE_SAVE_SEPARATOR, TAB_TO_DELETE
+} from "../utils/helper-utils";
 
 import DataTable from '../components/data-table.js';
 import ImageButton from '../components/image-button';
@@ -13,6 +16,11 @@ import { FormattedMessage } from "react-intl";
 import CoreController from './core-controller';
 
 import "./../components/styles/buttons.css";
+
+/**
+ * Propiedades a excluir durante el almacenado. 
+ */
+const PROPERTIES_TO_EXCLUDE_IN_STORAGE = ['dataTable', 'props', '_reactInternals', '_reactInternalInstance', 'context', 'refs', 'id'];
 
 /**
  * @class Controlador de vista.
@@ -54,9 +62,14 @@ export default class ViewController extends CoreController {
         this.id = this.generateUuid();
 
         /**
-         * Es un controlador modal.
+         * Índice del modal.
          */
-        this.is_modal = props.is_modal !== undefined && props.is_modal !== null ? props.is_modal : false;
+        this.modal_index = props.modal_index !== undefined && props.modal_index !== null ? props.modal_index : null;
+
+        /**
+         * Si tiene índice de modal, es un controlador modal.
+         */
+        this.is_modal = this.modal_index !== null ? true : false;
 
         /**
          * Elemento en el que se ha de hacer el último foco.
@@ -71,11 +84,6 @@ export default class ViewController extends CoreController {
             items: [],
 
             /**
-             * Pestaña en la que está situado el controlador de vista.
-             */
-            tab: props.tab,
-
-            /**
              * Estado del controlador de vista. Por defecto navegar a la vista de listado.
              */
             viewState: ViewStates.LIST,
@@ -88,10 +96,108 @@ export default class ViewController extends CoreController {
     }
 
     /**
+     * Función para almecenar los datos del viewcontroller en almacenamiento local.
+     */
+    saveStateToLocalStorage() {
+        // Para almacenar la variable con localStorage, he de tener en cuenta tres cosas:
+        // 1. Pestaña del controlador
+        // 2. Modal (el controlador puede estar en un modal o en la ventana principal, pero si está en un modal hay que registrarlo)
+        // 3. Si es una propiedad del objeto o bien pertenece al estado del mismo
+
+
+        for (var prop in this) {
+            if (Object.prototype.hasOwnProperty.call(this, prop)) {
+                // Excluir funciones y propiedades a excluir
+                if (typeof this[prop] === 'function' || PROPERTIES_TO_EXCLUDE_IN_STORAGE.includes(prop)) {
+                    continue;
+                }
+
+
+                // El estado lo trato aparte
+                if (prop === 'state') {
+                    continue;
+                }
+
+                localStorage.setItem(TAB_SAVE_SEPARATOR + SAVE_SEPARATOR + this.props.tab + (this.is_modal ? SAVE_DELIMITER + MODAL_SAVE_SEPARATOR + SAVE_SEPARATOR + this.modal_index : "") + SAVE_DELIMITER + PROPERTY_SAVE_SEPARATOR + SAVE_SEPARATOR + prop,
+                    JSON.stringify(this[prop]));
+            }
+        }
+
+        // Guardo aparte el estado
+        // eslint-disable-next-line
+        Object.entries(this.state).map(([key, value]) => {
+            localStorage.setItem(TAB_SAVE_SEPARATOR + SAVE_SEPARATOR + this.props.tab + (this.is_modal ? SAVE_DELIMITER + MODAL_SAVE_SEPARATOR + SAVE_SEPARATOR + this.modal_index : "") + SAVE_DELIMITER + STATE_SAVE_SEPARATOR + SAVE_SEPARATOR + key, value);
+        });
+    }
+
+    /**
+     * Restaura el estado desde localStore.
+     */
+    restoreStateFromLocalStore() {
+        // Recorrer lista de propiedades del objeto y a partir de localStorage ir completando datos
+        let key;
+        let key_split;
+        let field_name;
+
+        for (var prop in this) {
+            if (Object.prototype.hasOwnProperty.call(this, prop)) {
+                // Excluir funciones y algunas propiedades que o bien no se han almacenado o se van a tratar a posteriori
+                if (typeof this[prop] === 'function' || PROPERTIES_TO_EXCLUDE_IN_STORAGE.includes(prop)) {
+                    continue;
+                }
+
+                // Reinicio de variables
+                key = null;
+                key_split = null;
+                field_name = null;
+
+                // Voy recorriendo localStore y estableciendo valores
+                for (let i = 0; i < localStorage.length; i++) {
+                    key = localStorage.key(i);
+
+                    // Hago un split por el delimitador de cada idenficador
+                    key_split = key.split(SAVE_DELIMITER);
+
+                    // Tengo que comprobar que la pestaña (y el modal, si el controlador es modal) coinciden para no volcar los datos en el controller equivocado.
+
+                    // El último valor siempre es el nombre del campo
+                    field_name = key_split[key_split.length - 1];
+                }
+            }
+        }
+    }
+
+    /**
      * Sobrescritura de componentDidMount de React.component, para que al cargar el componente en la vista por primera vez traiga los datos desde la API.
      */
     componentDidMount() {
         this.fetchData();
+
+        // Añade listener para guardar el estado en localStorage cuando el usuario abandona o refresca la página
+        window.addEventListener(
+            "beforeunload",
+            this.saveStateToLocalStorage.bind(this)
+        );
+    }
+
+    /**
+     * Sobrescritura de componentWillUnmount para guardar los datos en localStorage al recargar la página. 
+     */
+    componentWillUnmount() {
+        // Eliminar el listener definido en componentDidMount
+        window.removeEventListener(
+            "beforeunload",
+            this.saveStateToLocalStorage.bind(this)
+        );
+
+        // Guarda el estado pero sólo si el componente se desmonta sin haberse cerrado la pestaña (es decir, si se ha recargado la página).
+        // La función de cerrado de pestaña se lanza antes de desmontar el componente.
+        if (localStorage.getItem(TAB_TO_DELETE + SAVE_SEPARATOR + this.props.tab)) {
+            // Si se ha cerrado la pestaña, no guardo los datos. Sí que elimino esta clave para evitar problemas.
+            localStorage.removeItem(TAB_TO_DELETE + SAVE_SEPARATOR + this.props.tab);
+        } else {
+            this.saveStateToLocalStorage();
+        }
     }
 
     /**
@@ -102,7 +208,7 @@ export default class ViewController extends CoreController {
         // Buscar todos los inputs de tipo texto no deshabilitados
         let focusable;
         let focusable_list;
-        
+
         // Si es modal y no encuentra input text, que ponga el foco incluso en los botones no deshabilitados
         if (this.last_focus_element !== undefined && this.last_focus_element !== null) {
             focusable = this.last_focus_element;

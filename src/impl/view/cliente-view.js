@@ -117,8 +117,11 @@ export default class ClienteView extends ViewController {
         // y es un div interno del mismo. Lo necesito sobre todo para hacer focus y cosas así.
         const modalId = uuidv4();
 
+        // Índice que va a ocupar en el modal tras añadirlo: será el tamaño actual del listado de modales antes de añadir el nuevo.
+        const modal_index = this.state.modalList !== undefined && this.state.modalList !== null ? this.state.modalList.length : 0;
+
         const modalContent = <div id={'modalDiv$$' + modalId} style={{ width: '100%' }}>
-            <LazyComponent key={modalId} tab={this.state.tab} parentContainer={'modalDiv$$' + modalId} is_modal={true}
+            <LazyComponent key={modalId} tab={this.props.tab} parentContainer={'modalDiv$$' + modalId} modal_index={modal_index}
                 select_action={(d) => { this.setTipoCliente(d); this.removeLastModal(); }} />
         </div>;
 

@@ -81,6 +81,11 @@ export default class TabPanel extends Component {
         // Eliminar elemento por índice
         data.splice(tab, 1);
 
+        // Eliminar la pestaña de almacenamiento local
+        if (this.props.cleanLocalDataOnTabClose !== undefined) {
+            this.props.cleanLocalDataOnTabClose(tab);
+        }
+
         // Calcular la nueva pestaña seleccionada
         let newActiveTab;
         // Si la longitud del nuevo contenido es mayor que cero, hago el cálculo

@@ -5,6 +5,7 @@ import TabPanel from './core/components/tab-panel';
 import { Toaster } from 'react-hot-toast';
 
 import { VIEW_MAP } from './impl/view/view_map';
+import { SAVE_SEPARATOR, TAB_SAVE_SEPARATOR, TAB_TO_DELETE } from "src/core/utils/helper-utils";
 
 import messages_en from "./translations/en.json";
 import messages_es from "./translations/es.json";
@@ -81,6 +82,32 @@ class App extends React.Component {
         return require("src/" + route).default;
     }
 
+    /**
+     * Elimina datos de la pestaña de localStore. Pensado para el cierre de la pestaña.
+     * 
+     * @param {int} tab 
+     */
+    delete_data_on_tab_close(tab) {
+        const keys_to_delete = [];
+
+        let key;
+         for (let i = 0; i < localStorage.length; i++) {
+             key = localStorage.key(i);
+             
+             if (key.startsWith(TAB_SAVE_SEPARATOR + SAVE_SEPARATOR + tab)) {
+                 keys_to_delete.push(key);
+             }
+         }
+ 
+         for (let i = 0; i < keys_to_delete.length; i++) {
+             localStorage.removeItem(keys_to_delete[i]);
+         }
+
+         // Guardo en localStorage la pestaña que se va a cerrar para evitar que componentWillUnmount del viewController vuelva a 
+         // guardar los datos (habrá que eliminar luego esta clave desde el controlador).
+         localStorage.setItem(TAB_TO_DELETE + SAVE_SEPARATOR + tab, true);
+    }
+
     render() {
         // Obtengo el lenguage por defecto
         const lang = this.state.lang;
@@ -135,7 +162,8 @@ class App extends React.Component {
                                         },
                                     }} />
 
-                                <TabPanel ref={this.tabPanel} get_component={(route) => this.get_lazy_component(route)} />
+                                <TabPanel ref={this.tabPanel} get_component={(route) => this.get_lazy_component(route)} 
+                                    cleanLocalDataOnTabClose={(t) => this.delete_data_on_tab_close(t)} />
 
                             </div>
                         </div>
