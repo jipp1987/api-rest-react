@@ -5,7 +5,7 @@ import TabPanel from './core/components/tab-panel';
 import { Toaster } from 'react-hot-toast';
 
 import { VIEW_MAP } from './impl/view/view_map';
-import { SAVE_SEPARATOR, TAB_SAVE_SEPARATOR, TAB_TO_DELETE } from "src/core/utils/helper-utils";
+import { SAVE_SEPARATOR, TAB_TO_DELETE } from "src/core/utils/helper-utils";
 
 import messages_en from "./translations/en.json";
 import messages_es from "./translations/es.json";
@@ -88,20 +88,8 @@ class App extends React.Component {
      * @param {int} tab 
      */
     delete_data_on_tab_close(tab) {
-        const keys_to_delete = [];
-
-        let key;
-        for (let i = 0; i < localStorage.length; i++) {
-            key = localStorage.key(i);
-
-            if (key.startsWith(TAB_SAVE_SEPARATOR + SAVE_SEPARATOR + tab)) {
-                keys_to_delete.push(key);
-            }
-        }
-
-        for (let i = 0; i < keys_to_delete.length; i++) {
-            localStorage.removeItem(keys_to_delete[i]);
-        }
+        // Borro todo localStorage, puesto que las pestañas se han reordenado.
+        localStorage.clear();
 
         // Guardo en localStorage la pestaña que se va a cerrar para evitar que componentWillUnmount del viewController vuelva a 
         // guardar los datos (habrá que eliminar luego esta clave desde el controlador).

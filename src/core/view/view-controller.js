@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { v4 as uuidv4 } from 'uuid';
 
 import {
-    ViewStates, ModalHelper, SAVE_DELIMITER, SAVE_SEPARATOR, TAB_SAVE_SEPARATOR,
+    ViewStates, ModalHelper, delete_from_localStorage_by_tab, SAVE_DELIMITER, SAVE_SEPARATOR, TAB_SAVE_SEPARATOR,
     MODAL_SAVE_SEPARATOR, PROPERTY_SAVE_SEPARATOR, STATE_SAVE_SEPARATOR, TAB_TO_DELETE
 } from "../utils/helper-utils";
 
@@ -301,6 +301,9 @@ export default class ViewController extends CoreController {
         // Traer datos de la API
         this.fetchData();
 
+        // Eliminar los datos del controlador del localStorage después de montar el componente
+        delete_from_localStorage_by_tab(this.props.tab);
+
         // Añade listener para guardar el estado en localStorage cuando el usuario abandona o refresca la página
         window.addEventListener(
             "beforeunload",
@@ -320,6 +323,8 @@ export default class ViewController extends CoreController {
         // Guarda el estado pero sólo si el componente se desmonta sin haberse cerrado la pestaña (es decir, si se ha recargado la página).
         // La función de cerrado de pestaña se lanza antes de desmontar el componente.
         if (localStorage.getItem(TAB_TO_DELETE + SAVE_SEPARATOR + this.props.tab)) {
+            // Eliminar los datos del controlador del localStorage después de montar el componente
+            delete_from_localStorage_by_tab(this.props.tab);
             // Si se ha cerrado la pestaña, no guardo los datos. Sí que elimino esta clave para evitar problemas.
             localStorage.removeItem(TAB_TO_DELETE + SAVE_SEPARATOR + this.props.tab);
         } else {

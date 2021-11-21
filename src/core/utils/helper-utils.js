@@ -3,34 +3,34 @@
 /**
  * Cadena para delimitar los distintos tokens del identificador.
  */
- const SAVE_DELIMITER = "$$";
- /**
-  * Separador para el identificador del token.
-  */
- const SAVE_SEPARATOR = "@@";
- /**
-  * Token para indicar la pestaña.
-  */
- const TAB_SAVE_SEPARATOR = "tab";
- /**
-  * Token para identificar el modal en caso de que sea un controlador modal.
-  */
- const MODAL_SAVE_SEPARATOR = "modal";
- /**
-  * Token para identificar la propiedad.
-  */
- const PROPERTY_SAVE_SEPARATOR = "property";
- /**
-  * Token para identificar si es variable de estado o no.
-  */
- const STATE_SAVE_SEPARATOR = "state";
+const SAVE_DELIMITER = "$$";
+/**
+ * Separador para el identificador del token.
+ */
+const SAVE_SEPARATOR = "@@";
+/**
+ * Token para indicar la pestaña.
+ */
+const TAB_SAVE_SEPARATOR = "tab";
+/**
+ * Token para identificar el modal en caso de que sea un controlador modal.
+ */
+const MODAL_SAVE_SEPARATOR = "modal";
+/**
+ * Token para identificar la propiedad.
+ */
+const PROPERTY_SAVE_SEPARATOR = "property";
+/**
+ * Token para identificar si es variable de estado o no.
+ */
+const STATE_SAVE_SEPARATOR = "state";
 
- /**
-  * Identificador para pestañas que van a ser eliminadas. Se utiliza para que al cerrar una pestaña, componentWillUnmount no vuelva a guardar los datos en localStorage.
-  */
- const TAB_TO_DELETE = "dontSaveThisTab";
+/**
+ * Identificador para pestañas que van a ser eliminadas. Se utiliza para que al cerrar una pestaña, componentWillUnmount no vuelva a guardar los datos en localStorage.
+ */
+const TAB_TO_DELETE = "dontSaveThisTab";
 
- // Otros campos
+// Otros campos
 
 /**
  * Estados y acciones de los controladores de vista.
@@ -165,7 +165,31 @@ class ModalHelper {
 
 }
 
+/**
+ * Elimina los datos de localStorage correspondientes a una pestaña.
+ * 
+ * @param {int} tab 
+ */
+function delete_from_localStorage_by_tab(tab) {
+    const keys_to_delete = [];
+
+    let key;
+    for (let i = 0; i < localStorage.length; i++) {
+        key = localStorage.key(i);
+
+        if (key.startsWith(TAB_SAVE_SEPARATOR + SAVE_SEPARATOR + tab)) {
+            keys_to_delete.push(key);
+        }
+    }
+
+    for (let i = 0; i < keys_to_delete.length; i++) {
+        localStorage.removeItem(keys_to_delete[i]);
+    }
+}
+
 
 // Exportar como módulo.
-module.exports = { ViewStates, ViewValidators, APIActionCodes, SelectActions, resolve_property_by_string, number_format, focusNextElement, forceOnBlur, ModalHelper,
-    SAVE_DELIMITER, SAVE_SEPARATOR, TAB_SAVE_SEPARATOR, MODAL_SAVE_SEPARATOR, PROPERTY_SAVE_SEPARATOR, STATE_SAVE_SEPARATOR, TAB_TO_DELETE }
+module.exports = {
+    ViewStates, ViewValidators, APIActionCodes, SelectActions, resolve_property_by_string, number_format, focusNextElement, forceOnBlur, delete_from_localStorage_by_tab, ModalHelper,
+    SAVE_DELIMITER, SAVE_SEPARATOR, TAB_SAVE_SEPARATOR, MODAL_SAVE_SEPARATOR, PROPERTY_SAVE_SEPARATOR, STATE_SAVE_SEPARATOR, TAB_TO_DELETE
+}
