@@ -102,7 +102,7 @@ export default class ClienteView extends ViewController {
         // Modificar la entidad. El suggestionbox ya tiene un hook para repintarse en caso de que se modifique su entidad asociada.
         this.selectedItem.tipoCliente = tipo_cliente;
         // Forzar foco sobre el input al finalizar la operación
-        this.last_focus_element = document.getElementById(this.id + "_tipoCliente");
+        this.last_focus_element = this.id + "_tipoCliente";
     }
 
     // TODO Provisional.

@@ -27,12 +27,12 @@ class DataTable extends Component {
 
     // Sobrescribo este método estático para mantener el componente actualizado ante cualquier cambio en los datos.
     static getDerivedStateFromProps(nextProps, prevState) {
-        const { data } = nextProps;
+        const { data, headers } = nextProps;
 
         // Lo que hago es comparar los datos del estado previo con los nuevos que vengan en las propiedades entrantes. Si son distintos, actualizo el estado.
-        return data === prevState.data
+        return data === prevState.data && headers === prevState.headers
             ? null
-            : { data: data };
+            : { data: data, headers: headers };
     }
 
     //componentDidUpdate(nextProps) {

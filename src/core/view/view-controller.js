@@ -11,16 +11,13 @@ import DataTable from '../components/data-table.js';
 import ImageButton from '../components/image-button';
 import LoadingIndicator from '../components/loading-indicator';
 import Modal from "../components/modal";
+import CoreController from './core-controller';
+import HeaderHelper from './header-helper';
 
 import { FormattedMessage } from "react-intl";
-import CoreController from './core-controller';
 
 import "./../components/styles/buttons.css";
-
-/**
- * Propiedades a excluir durante el almacenado. 
- */
-const PROPERTIES_TO_EXCLUDE_IN_STORAGE = ['dataTable', 'props', '_reactInternals', '_reactInternalInstance', 'context', 'refs', 'id'];
+import { FieldClause, FilterClause, GroupByClause, JoinClause, OrderByClause } from '../utils/dao-utils';
 
 /**
  * @class Controlador de vista.
@@ -104,30 +101,23 @@ export default class ViewController extends CoreController {
         // 2. Modal (el controlador puede estar en un modal o en la ventana principal, pero si está en un modal hay que registrarlo)
         // 3. Si es una propiedad del objeto o bien pertenece al estado del mismo
 
+        var k = TAB_SAVE_SEPARATOR + SAVE_SEPARATOR + this.props.tab + (this.is_modal ? SAVE_DELIMITER + MODAL_SAVE_SEPARATOR + SAVE_SEPARATOR + this.modal_index : "") + SAVE_DELIMITER + PROPERTY_SAVE_SEPARATOR + SAVE_SEPARATOR;
 
-        for (var prop in this) {
-            if (Object.prototype.hasOwnProperty.call(this, prop)) {
-                // Excluir funciones y propiedades a excluir
-                if (typeof this[prop] === 'function' || PROPERTIES_TO_EXCLUDE_IN_STORAGE.includes(prop)) {
-                    continue;
-                }
-
-
-                // El estado lo trato aparte
-                if (prop === 'state') {
-                    continue;
-                }
-
-                localStorage.setItem(TAB_SAVE_SEPARATOR + SAVE_SEPARATOR + this.props.tab + (this.is_modal ? SAVE_DELIMITER + MODAL_SAVE_SEPARATOR + SAVE_SEPARATOR + this.modal_index : "") + SAVE_DELIMITER + PROPERTY_SAVE_SEPARATOR + SAVE_SEPARATOR + prop,
-                    JSON.stringify(this[prop]));
-            }
-        }
+        localStorage.setItem(k + "fields", JSON.stringify(this.fields));
+        localStorage.setItem(k + "filters", JSON.stringify(this.filters));
+        localStorage.setItem(k + "order", JSON.stringify(this.order));
+        localStorage.setItem(k + "joins", JSON.stringify(this.joins));
+        localStorage.setItem(k + "group_by", JSON.stringify(this.group_by));
+        localStorage.setItem(k + "headers", JSON.stringify(this.headers));
+        localStorage.setItem(k + "selectedItem", JSON.stringify(this.selectedItem));
+        localStorage.setItem(k + "itemToDelete", JSON.stringify(this.itemToDelete));
+        localStorage.setItem(k + "rowLimit", this.rowLimit);
+        localStorage.setItem(k + "last_focus_element", this.last_focus_element);
 
         // Guardo aparte el estado
-        // eslint-disable-next-line
-        Object.entries(this.state).map(([key, value]) => {
-            localStorage.setItem(TAB_SAVE_SEPARATOR + SAVE_SEPARATOR + this.props.tab + (this.is_modal ? SAVE_DELIMITER + MODAL_SAVE_SEPARATOR + SAVE_SEPARATOR + this.modal_index : "") + SAVE_DELIMITER + STATE_SAVE_SEPARATOR + SAVE_SEPARATOR + key, value);
-        });
+        k = TAB_SAVE_SEPARATOR + SAVE_SEPARATOR + this.props.tab + (this.is_modal ? SAVE_DELIMITER + MODAL_SAVE_SEPARATOR + SAVE_SEPARATOR + this.modal_index : "") + SAVE_DELIMITER + STATE_SAVE_SEPARATOR + SAVE_SEPARATOR;
+        localStorage.setItem(k + "viewState", this.state.viewState);
+        localStorage.setItem(k + "modalList", JSON.stringify(this.state.modalList));
     }
 
     /**
@@ -136,33 +126,167 @@ export default class ViewController extends CoreController {
     restoreStateFromLocalStore() {
         // Recorrer lista de propiedades del objeto y a partir de localStorage ir completando datos
         let key;
+        let value;
+        // La clave está formada por una serie de tokens los cuáles me van a informar sobre si la propiedad pertenece o no al controlador
         let key_split;
+        let field_token;
         let field_name;
 
-        for (var prop in this) {
-            if (Object.prototype.hasOwnProperty.call(this, prop)) {
-                // Excluir funciones y algunas propiedades que o bien no se han almacenado o se van a tratar a posteriori
-                if (typeof this[prop] === 'function' || PROPERTIES_TO_EXCLUDE_IN_STORAGE.includes(prop)) {
-                    continue;
-                }
+        // Voy recorriendo localStore y estableciendo valores
+        for (let i = 0; i < localStorage.length; i++) {
+            key = localStorage.key(i);
+            value = localStorage[key];
 
-                // Reinicio de variables
-                key = null;
-                key_split = null;
-                field_name = null;
+            // Hago un split por el delimitador de cada idenficador
+            key_split = key.split(SAVE_DELIMITER);
 
-                // Voy recorriendo localStore y estableciendo valores
-                for (let i = 0; i < localStorage.length; i++) {
-                    key = localStorage.key(i);
+            // Tengo que comprobar que la pestaña (y el modal, si el controlador es modal) coinciden para no volcar los datos en el controller equivocado.
+            if (!key_split.includes(TAB_SAVE_SEPARATOR + SAVE_SEPARATOR + this.props.tab)) {
+                continue;
+            }
 
-                    // Hago un split por el delimitador de cada idenficador
-                    key_split = key.split(SAVE_DELIMITER);
+            // Lo mismo para controllers de modal, siempre y cuando lo sea
+            if (this.is_modal && !key_split.includes(MODAL_SAVE_SEPARATOR + SAVE_SEPARATOR + this.props.modal_index)) {
+                continue;
+            }
 
-                    // Tengo que comprobar que la pestaña (y el modal, si el controlador es modal) coinciden para no volcar los datos en el controller equivocado.
+            // Si llega hasta aquí, es que la propiedad es del controlador
 
-                    // El último valor siempre es el nombre del campo
-                    field_name = key_split[key_split.length - 1];
-                }
+            // El último valor siempre es el nombre del campo
+            field_token = key_split[key_split.length - 1];
+            field_name = field_token.split(SAVE_SEPARATOR)[1];
+
+            // Finalmente, tengo que revisar campo por campo para establecerlos correctamente desde json
+            switch (field_name) {
+                case 'viewState':
+                    // Atributo de estado
+                    this.setState({ viewState: ViewStates[value] });
+                    break;
+
+                case 'modalList':
+                    // Atributo de estado
+                    const modalList = [];
+
+                    if (value !== undefined && value !== null) {
+                        value = JSON.parse(value);
+
+                        if (value !== null) {
+                            for (let i = 0; i < value.length; i++) {
+                                modalList.push(Object.assign(new ModalHelper(), value[i]))
+                            }
+                        }
+                    }
+
+                    this.setState({ modalList: modalList });
+                    break;
+
+                case 'rowLimit':
+                    // Caso para números enteros
+                    this.rowLimit = parseInt(value);
+                    break;
+
+                case 'fields':
+                    this.fields = [];
+
+                    if (value !== undefined && value !== null) {
+                        value = JSON.parse(value);
+
+                        if (value !== null) {
+                            for (let i = 0; i < value.length; i++) {
+                                this.fields.push(Object.assign(new FieldClause(), value[i]))
+                            }
+                        }
+                    }
+
+                    break;
+
+                case 'filters':
+                    this.filters = [];
+
+                    if (value !== undefined && value !== null) {
+                        value = JSON.parse(value);
+
+                        if (value !== null) {
+                            for (let i = 0; i < value.length; i++) {
+                                this.filters.push(Object.assign(new FilterClause(), value[i]))
+                            }
+                        }
+                    }
+
+                    break;
+
+                case 'order':
+                    this.order = [];
+
+                    if (value !== undefined && value !== null) {
+                        value = JSON.parse(value);
+
+                        if (value !== null) {
+                            for (let i = 0; i < value.length; i++) {
+                                this.order.push(Object.assign(new OrderByClause(), value[i]))
+                            }
+                        }
+                    }
+
+                    break;
+
+                case 'joins':
+                    this.joins = [];
+
+                    if (value !== undefined && value !== null) {
+                        value = JSON.parse(value);
+
+                        if (value !== null) {
+                            for (let i = 0; i < value.length; i++) {
+                                this.joins.push(Object.assign(new JoinClause(), value[i]))
+                            }
+                        }
+                    }
+
+                    break;
+
+                case 'group_by':
+                    this.group_by = [];
+
+                    if (value !== undefined && value !== null) {
+                        value = JSON.parse(value);
+
+                        if (value !== null) {
+                            for (let i = 0; i < value.length; i++) {
+                                this.group_by.push(Object.assign(new GroupByClause(), value[i]))
+                            }
+                        }
+                    }
+
+                    break;
+
+                case 'headers':
+                    this.headers = [];
+
+                    if (value !== undefined && value !== null) {
+                        value = JSON.parse(value);
+
+                        if (value !== null) {
+                            for (let i = 0; i < value.length; i++) {
+                                this.headers.push(Object.assign(new HeaderHelper(), value[i]))
+                            }
+                        }
+                    }
+
+                    break;
+
+                case 'selectedItem':
+                    this.selectedItem = value !== undefined && value !== null ? Object.assign(new this.entity_class(), JSON.parse(value)) : null;
+                    break;
+
+                case 'itemToDelete':
+                    this.itemToDelete = value !== undefined && value !== null ? Object.assign(new this.entity_class(), JSON.parse(value)) : null;
+                    break;
+
+                default:
+                    // Caso genérico para strings
+                    this[field_name] = value;
+                    break;
             }
         }
     }
@@ -171,6 +295,10 @@ export default class ViewController extends CoreController {
      * Sobrescritura de componentDidMount de React.component, para que al cargar el componente en la vista por primera vez traiga los datos desde la API.
      */
     componentDidMount() {
+        // Restaurar estado y propiedades de la vista desde localStore
+        this.restoreStateFromLocalStore();
+
+        // Traer datos de la API
         this.fetchData();
 
         // Añade listener para guardar el estado en localStorage cuando el usuario abandona o refresca la página
@@ -178,18 +306,17 @@ export default class ViewController extends CoreController {
             "beforeunload",
             this.saveStateToLocalStorage.bind(this)
         );
+
+        window.addEventListener(
+            "beforeunload",
+            this.restoreStateFromLocalStore.bind(this)
+        );
     }
 
     /**
      * Sobrescritura de componentWillUnmount para guardar los datos en localStorage al recargar la página. 
      */
     componentWillUnmount() {
-        // Eliminar el listener definido en componentDidMount
-        window.removeEventListener(
-            "beforeunload",
-            this.saveStateToLocalStorage.bind(this)
-        );
-
         // Guarda el estado pero sólo si el componente se desmonta sin haberse cerrado la pestaña (es decir, si se ha recargado la página).
         // La función de cerrado de pestaña se lanza antes de desmontar el componente.
         if (localStorage.getItem(TAB_TO_DELETE + SAVE_SEPARATOR + this.props.tab)) {
@@ -198,6 +325,17 @@ export default class ViewController extends CoreController {
         } else {
             this.saveStateToLocalStorage();
         }
+
+        // Eliminar el listener definido en componentDidMount
+        window.removeEventListener(
+            "beforeunload",
+            this.saveStateToLocalStorage.bind(this)
+        );
+
+        window.removeEventListener(
+            "beforeunload",
+            this.restoreStateFromLocalStore.bind(this)
+        );
     }
 
     /**
@@ -211,7 +349,7 @@ export default class ViewController extends CoreController {
 
         // Si es modal y no encuentra input text, que ponga el foco incluso en los botones no deshabilitados
         if (this.last_focus_element !== undefined && this.last_focus_element !== null) {
-            focusable = this.last_focus_element;
+            focusable = document.getElementById(this.last_focus_element);
         } else {
             if (this.is_modal === true) {
                 focusable_list = document.getElementById(this.props.parentContainer).querySelectorAll('button:not(:disabled), input[type="text"]:not(:disabled):not([readonly]):not([type=hidden]');

@@ -91,21 +91,21 @@ class App extends React.Component {
         const keys_to_delete = [];
 
         let key;
-         for (let i = 0; i < localStorage.length; i++) {
-             key = localStorage.key(i);
-             
-             if (key.startsWith(TAB_SAVE_SEPARATOR + SAVE_SEPARATOR + tab)) {
-                 keys_to_delete.push(key);
-             }
-         }
- 
-         for (let i = 0; i < keys_to_delete.length; i++) {
-             localStorage.removeItem(keys_to_delete[i]);
-         }
+        for (let i = 0; i < localStorage.length; i++) {
+            key = localStorage.key(i);
 
-         // Guardo en localStorage la pestaña que se va a cerrar para evitar que componentWillUnmount del viewController vuelva a 
-         // guardar los datos (habrá que eliminar luego esta clave desde el controlador).
-         localStorage.setItem(TAB_TO_DELETE + SAVE_SEPARATOR + tab, true);
+            if (key.startsWith(TAB_SAVE_SEPARATOR + SAVE_SEPARATOR + tab)) {
+                keys_to_delete.push(key);
+            }
+        }
+
+        for (let i = 0; i < keys_to_delete.length; i++) {
+            localStorage.removeItem(keys_to_delete[i]);
+        }
+
+        // Guardo en localStorage la pestaña que se va a cerrar para evitar que componentWillUnmount del viewController vuelva a 
+        // guardar los datos (habrá que eliminar luego esta clave desde el controlador).
+        localStorage.setItem(TAB_TO_DELETE + SAVE_SEPARATOR + tab, true);
     }
 
     render() {
@@ -162,7 +162,7 @@ class App extends React.Component {
                                         },
                                     }} />
 
-                                <TabPanel ref={this.tabPanel} get_component={(route) => this.get_lazy_component(route)} 
+                                <TabPanel ref={this.tabPanel} get_component={(route) => this.get_lazy_component(route)}
                                     cleanLocalDataOnTabClose={(t) => this.delete_data_on_tab_close(t)} />
 
                             </div>
