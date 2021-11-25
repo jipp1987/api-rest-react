@@ -276,11 +276,11 @@ export default class ViewController extends CoreController {
                     break;
 
                 case 'selectedItem':
-                    this.selectedItem = value !== undefined && value !== null ? Object.assign(new this.entity_class(), JSON.parse(value)) : null;
+                    this.selectedItem = value !== undefined && value !== null ? this.entity_class.from(JSON.parse(value)) : null;
                     break;
 
                 case 'itemToDelete':
-                    this.itemToDelete = value !== undefined && value !== null ? Object.assign(new this.entity_class(), JSON.parse(value)) : null;
+                    this.itemToDelete = value !== undefined && value !== null ? this.entity_class.from(JSON.parse(value)) : null;
                     break;
 
                 default:

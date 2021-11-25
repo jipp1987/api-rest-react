@@ -90,7 +90,7 @@ export default class ClienteView extends ViewController {
      */
     prepareCreate() {
         this.selectedItem = new Cliente();
-        this.selectedItem.tipoCliente = new TipoCliente();
+        this.selectedItem.tipo_cliente = new TipoCliente();
     }
 
     // TODO Provisional.
@@ -100,7 +100,7 @@ export default class ClienteView extends ViewController {
      */
     setTipoCliente = (tipo_cliente) => {
         // Modificar la entidad. El suggestionbox ya tiene un hook para repintarse en caso de que se modifique su entidad asociada.
-        this.selectedItem.tipoCliente = tipo_cliente;
+        this.selectedItem.tipo_cliente = tipo_cliente;
         // Forzar foco sobre el input al finalizar la operación
         this.last_focus_element = this.id + "_tipoCliente";
     }
@@ -170,9 +170,9 @@ export default class ClienteView extends ViewController {
 
                 <SuggestionBox
                     id={this.id + "_tipoCliente"}
-                    entity={this.selectedItem.tipoCliente}
-                    valueName={this.selectedItem.tipoCliente.constructor.getCodigoFieldName()}
-                    idFieldName={this.selectedItem.tipoCliente.constructor.getIdFieldName()}
+                    entity={this.selectedItem.tipo_cliente}
+                    valueName={TipoCliente.getCodigoFieldName()}
+                    idFieldName={TipoCliente.getIdFieldName()}
                     suggestAction={(inputText) => this.suggestEntities(properties.apiUrl + '/api/TipoCliente', inputText,
                         ['codigo', 'descripcion'], ['codigo', 'descripcion'], 'tipo_cliente_id')}
                     label={<FormattedMessage id="i18n_clientes_customer_type" />}

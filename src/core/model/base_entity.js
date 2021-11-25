@@ -15,31 +15,14 @@ export default class BaseEntity {
     /**
      * Id único para evitar problemas en tablas y listados de react.
      */
-    this._uuid = uuidv4();
+    this.uuid = uuidv4();
 
     /**
      * Mapa de errores por atributo. Necesario para la validación en los formularios. La clave es un string con el nombre de la propiedad errónea; 
      * el valor es una tupla con el error y el valor erróneo. Merece la pena almacenar el valor erróneo porque si se cambia el valor de la propiedad desde otro punto, se puede 
      * comparar el valor actual con el almacenado junto al error para saber si ha cambiado y si es así eliminar el error del mapa.
     */
-    this._errorMessagesInForm = new Map();
-  }
-
-  // GETTERS Y SETTERS
-  get uuid() {
-    return this._uuid
-  }
-
-  set uuid(uuid) {
-    this._uuid = uuid
-  }
-
-  get errorMessagesInForm() {
-    return this._errorMessagesInForm;
-  }
-
-  set errorMessagesInForm(errorMessagesInForm) {
-    this._errorMessagesInForm = errorMessagesInForm
+    this.errorMessagesInForm = new Map();
   }
 
   // FUNCIONES
