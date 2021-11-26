@@ -122,7 +122,7 @@ export default class ViewController extends CoreController {
         // Guardo aparte el estado
         k = TAB_SAVE_SEPARATOR + SAVE_SEPARATOR + this.props.tab + (this.is_modal ? SAVE_DELIMITER + MODAL_SAVE_SEPARATOR + SAVE_SEPARATOR + this.modal_index : "") + SAVE_DELIMITER + STATE_SAVE_SEPARATOR + SAVE_SEPARATOR;
         localStorage.setItem(k + "viewState", this.state.viewState);
-        localStorage.setItem(k + "modalList", JSON.stringify(this.state.modalList));
+        // localStorage.setItem(k + "modalList", JSON.stringify(this.state.modalList));
     }
 
     /**
