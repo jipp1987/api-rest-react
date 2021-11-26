@@ -101,6 +101,11 @@ export default class ViewController extends CoreController {
         // 2. Modal (el controlador puede estar en un modal o en la ventana principal, pero si está en un modal hay que registrarlo)
         // 3. Si es una propiedad del objeto o bien pertenece al estado del mismo
 
+        // TODO De momento no voy a guardar en localStorage los modales, pero si en algún momento lo hago es importante borrar de localstorage al cerrar el modal!!!
+        if (this.is_modal) {
+            return;
+        }
+
         var k = TAB_SAVE_SEPARATOR + SAVE_SEPARATOR + this.props.tab + (this.is_modal ? SAVE_DELIMITER + MODAL_SAVE_SEPARATOR + SAVE_SEPARATOR + this.modal_index : "") + SAVE_DELIMITER + PROPERTY_SAVE_SEPARATOR + SAVE_SEPARATOR;
 
         localStorage.setItem(k + "fields", JSON.stringify(this.fields));
@@ -163,7 +168,8 @@ export default class ViewController extends CoreController {
                     this.setState({ viewState: ViewStates[value] });
                     break;
 
-                case 'modalList':
+                // TODO De momento no voy a guardar en localStorage los modales, pero si en algún momento lo hago es importante borrar de localstorage al cerrar el modal!!!
+                /*case 'modalList':
                     // Atributo de estado
                     const modalList = [];
 
@@ -178,7 +184,7 @@ export default class ViewController extends CoreController {
                     }
 
                     this.setState({ modalList: modalList });
-                    break;
+                    break;*/
 
                 case 'rowLimit':
                     // Caso para números enteros

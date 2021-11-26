@@ -178,7 +178,7 @@ function checkKey(e, parentId) {
  */
 export default function SuggestionBox(props) {
     // Estado inicial a partir de las propiedades
-    const [value, setValue] = useState(props.entity[props.valueName] !== null && props.entity[props.valueName] !== undefined ? props.entity[props.valueName] : "");
+    const [value, setValue] = useState(props.entity[props.valueName] !== undefined && props.entity[props.valueName] !== null ? props.entity[props.valueName] : "");
     const [isRequired, setIsRequired] = useState(props.isRequired !== undefined && props.isRequired !== null ? props.isRequired : false);
     const [entity, setEntity] = useState(props.entity);
     const [isEditing, setIsEditing] = useState(props.isEditing);
@@ -200,7 +200,7 @@ export default function SuggestionBox(props) {
 
     // Si cambia la entidad asociada, debe volver a renderizarse.
     useEffect(() => {
-         setValue(props.entity[props.valueName] !== null && props.entity[props.valueName] !== undefined ? props.entity[props.valueName] : "");
+         setValue(props.entity[props.valueName] !== undefined && props.entity[props.valueName] !== null ? props.entity[props.valueName] : "");
     }, [props.entity, props.valueName]);
 
     // Para detectar el click fuera del componente
