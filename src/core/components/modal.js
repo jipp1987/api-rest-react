@@ -18,7 +18,7 @@ export default function Modal(props) {
   if (props.onClose !== undefined && props.onClose !== null) {
     // Crear sección para mostrar el botón de cerrar
     closeButton =
-      <ImageButton className='close-button' style={{width: '15px', height: '15px'}} onClick={props.onClose} />
+      <ImageButton className='close-button' style={{width: '30px', height: '15px'}} onClick={props.onClose} />
   }
 
 

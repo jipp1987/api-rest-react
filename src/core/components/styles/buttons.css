@@ -42,10 +42,11 @@
     flex-direction: row;
     justify-content: center;
     align-items: center;
+    border: 1px solid transparent !important;
 }
 
 .custom-button:focus {
-    border: 2px solid black !important;
+    border: 1px solid black !important;
     border-radius: 2px !important;
 }
 

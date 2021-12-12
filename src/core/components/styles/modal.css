@@ -1,5 +1,5 @@
 .modal {
-    position: absolute;
+    position: absolute; /* Esto es importante: el modal debe tener posición absoluta sobre un elemento con posición relativa. */
     left: 0;
     top: 0;
     right: 0;
